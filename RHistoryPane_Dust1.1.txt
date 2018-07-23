@@ -1,0 +1,516 @@
+#RHistory (History pane to try and recreate my code/workflow)
+
+
+map_meta<-read.csv("BD_metadata1.csv")
+otu_map<-left_join(otu.cast, map_meta, by=c('sample'))%>%
+dplyr::select(sample,Year,Month,SiteCode,RepNum,SiteRep,Site,Elevation,DateCode,Description,everything())
+View(otu_map)
+write.csv(otu_map, 'otus_by_classBD.csv', row.names=FALSE)
+setwd('/Users/maltz/Desktop/RdataDust')
+library(dplyr)
+library(reshape2)
+library(tidyr)
+library(vegan)
+library(ggplot2)# ggplot resource -http://rpubs.com/collnell/ggplot2
+library(tidyverse) # useful packages in 1 - dplyr, ggplot2, tidyr +
+head(otu_map)
+colnames(otu_map)
+comm.grps<-otu_map%>%dplyr::select(sample:Description) #mapping data
+colnames(comm.grps)
+comm.mat<-otu_map%>%dplyr::select(-c(sample:Description)) # community matrix - all but mapping data
+head(comm.grps)
+str(comm.grps)
+View(comm.grps)
+comm.mat$hloroplast<-as.numeric(comm.mat$hloroplast)
+comm.mat$ktedonobacteria<-as.numeric(comm.mat$ktedonobacteria)
+comm.mat$sphingobacteriia<-as.numeric(comm.mat$sphingobacteriia)
+comm.mat$phycisphaerae<-as.numeric(comm.mat$phycisphaerae)
+comm.mat$betaproteobacteria<-as.numeric(comm.mat$betaproteobacteria)
+comm.mat$bacilli<-as.numeric(comm.mat$bacilli)
+comm.mat$deltaproteobacteria<-as.numeric(comm.mat$deltaproteobacteria)
+comm.mat$alphaproteobacteria<-as.numeric(comm.mat$alphaproteobacteria)
+comm.mat$'[spartobacteria]'<-as.numeric(comm.mat$'[spartobacteria]')
+comm.mat$acidimicrobiia<-as.numeric(comm.mat$acidimicrobiia)
+comm.mat$'acidobacteria-6' <-as.numeric(comm.mat$'acidobacteria-6')
+comm.mat$acidobacteriia<-as.numeric(comm.mat$acidobacteriia)
+comm.mat$actinobacteria<-as.numeric(comm.mat$actinobacteria)
+comm.mat$acidobacteriia<-as.numeric(comm.mat$acidobacteriia)
+comm.mat$thermoleophilia<-as.numeric(comm.mat$thermoleophilia)
+comm.mat$thermomicrobia<-as.numeric(comm.mat$thermomicrobia)
+comm.mat$thermotogae<-as.numeric(comm.mat$thermotogae)
+comm.mat$tk10<-as.numeric(comm.mat$tk10)
+comm.mat$tk17<-as.numeric(comm.mat$tk17)
+comm.mat$tm1<-as.numeric(comm.mat$tm1)
+comm.mat$'tm7-1'<-as.numeric(comm.mat$'tm7-1')
+comm.mat$'tm7-3'<-as.numeric(comm.mat$'tm7-3')
+comm.mat$vadinha49<-as.numeric(comm.mat$vadinha49)
+comm.mat$vc21bac22<-as.numeric(comm.mat$vc21bac22)
+comm.mat$'verruco-5'<-as.numeric(comm.mat$'verruco-5')
+comm.mat$verrucomicrobiae<-as.numeric(comm.mat$verrucomicrobiae)
+comm.mat$ytophagia<-as.numeric(comm.mat$ytophagia)
+comm.mat$zb2<-as.numeric(comm.mat$zb2)
+comm.mat$'NA'<-as.numeric(comm.mat$'NA')
+str(comm.mat)
+tail(comm.mat)
+indices <- comm.grps
+comm.mat$solibacteres<-as.numeric(comm.mat$solibacteres)
+indices$richness <- rowSums(comm.mat>0)
+indices$shannon <- diversity(comm.mat, index='shannon')
+ggplot(indices, aes(x = ChambStatus, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(x = elevation, y = rarified))+geom_boxplot(aes(fill = elevation))
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+View(comm.mat)
+View(dust16s)
+View(du16s) # but the first line is the column header
+View(dust16s)
+View(d16s)
+A16s<-read.csv("filtered_table_w_metadata.csv")
+View(A16s)
+A16s<-read.csv("filtered_table_w_metadata.csv")
+class(A16s)
+str(A16s)
+summary(A16s)
+dim(A16s)
+head(A16s)
+A16s<-read.csv("filtered_table_w_metadata.csv",header = T,stringsAsFactors = F, col.names = 1)
+A16s<-read.csv("filtered_table_w_metadata.csv",header = T,stringsAsFactors = F)
+colnames(A16s)=A16s[1,]
+head(A16s)
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+dim(A16s)
+head(A16s[1,10,1:20])
+head(A16s[1:10,1:20])
+colnames(A16s)=A16s[1,]
+A16s[-1,]
+A16s=A16s[-1,]
+head(A16s[1:10,1:20])
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+colnames(A16s)=A16s[1,]
+A16s=A16s[,-1]
+head(A16s[1:10,1:20])
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+colnames(A16s)=A16s[1,]
+head(A16s)
+head(A16s[,1:25])
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+head(A16s[,1:25])
+colnames(A16s)=A16s[1,]
+head(A16s[,1:25])
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+rownames(A16s)=A16s[1,]
+colnames(A16s)=A16s[1,]
+A16s<-read.csv("tmp.csv", header = T, stringsAsFactors = F)
+head(A16s[,1:25])
+rownames(A16s)=A16s[,1]
+head(A16s[,1:25])
+A16s=A16s[,-1]
+head(A16s[,1:25])
+head(A16s[,26:33])
+head(A16s[,26:32])
+library(reshape2)
+View(file2.melt) #compare this to file2
+map6<-read.csv("SierraMap6.csv", col_names = c('SampleID','BarcodeSequence','LinkerPrimer','Year','Month','SiteCode','RepNum','SiteRep','Site','Elevation','DateCode','DescName','Description'))
+map6<-read.csv("SierraMap6.csv", header = TRUE)
+View(map6)
+rownames(map6)=map6[,1]
+map6=map6[,-1]
+View(map6)
+rownames(map6)=map6[,-c(1:2)]
+(map6)=map6[,-c(1:2)]
+map6=map6[,-c(1:2)]
+View(map6)
+rownames(map6)
+colnames(A16s)
+sort(colnames(A16s))
+dim(A16s)
+dim(map6)
+str(comm.mat)
+str(comm.grps)
+indices <- comm.grps
+indices$richness <- rowSums(comm.mat>0)
+str(comm.mat)
+comm.mat$planctomycetia<-as.numeric(comm.mat$planctomycetia)
+str(comm.mat)
+indices <- comm.mat
+comm.mat$solibacteres<-as.numeric(comm.mat$solibacteres)
+indices$richness <- rowSums(comm.mat>0)
+str(comm.mat)
+head(comm.mat)
+head(comm.mat)
+View(comm.mat)
+head(comm.mat)
+dim(commandArgs())
+dim(comm.dat)
+dim(comm.mat)
+comm.mat2=comm.mat[,-c(1,114:117)]
+head(comm.mat2)
+indices$richness <- rowSums(comm.mat2>0)
+indices$shannon <- diversity(comm.mat2, index='shannon')
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+indices <- comm.grps
+indices$richness <- rowSums(comm.mat2>0)
+indices$shannon <- diversity(comm.mat2, index='shannon')
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(x = elevation, y = rarified))+geom_boxplot(aes(fill = elevation))
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(fill = elevation))
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = Elevation) # mapping color in 'aes' vs outside
+Elevation.rich.aov<-aov(rarified~Elevation, data=indices)
+indices$rarified <- c(rarefy(comm.mat2, sample=1192)) # rarefied diversity for a given sample size
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(fill = elevation))
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = Elevation) # mapping color in 'aes' vs outside
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'Elevation')
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'red') # set specific color to ALL
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'darkslateblue', fill = 'yellow')
+ggplot(indices, aes(x = Elevation, y = rarified))+
+geom_boxplot(aes(color = Elevation))+
+geom_point(aes(color=Elevation), size=3)
+class(indices())
+class(indices)
+head(indices)
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=year, x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=Year, x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=Month, x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+comm.rel<-decostand(comm.mat2, method='total')# relative composition
+comm.dis<-vegdist(comm.mat2, method='bray')# dissimialrity
+Elevation.perm<-adonis(comm.dis~Elevation, data=comm.grps, permutations=10000)
+Elevation.perm
+tree
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = Elevation) # mapping color in 'aes' vs outside
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'Elevation')
+ggplot(indices, aes(x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for Month T
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(fill = elevation))
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = Elevation) # mapping color in 'aes' vs outside
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'Elevation')
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'red') # set specific color to ALL
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'darkslateblue', fill = 'yellow')
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=SiteCode, x = Site, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=SiteCode, x = DateCode, y = richness))+geom_boxplot() # seemingly higher diversity for tree T
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(color = Elevation) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(color = 'DateCode')
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'DateCode'))
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'Month'))
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(color = 'red') # set specific color to ALL
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'SiteCode'))
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(color = 'blue') # set specific color to ALL
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'SiteCode'))
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(color = 'blue') # set specific color to ALL
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'blue')) # set specific color to ALL
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(color = 'blue') # set specific color to ALL
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'darkslateblue', fill = 'yellow')
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(color = 'darkslateblue', fill = 'yellow')
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # fill vs color - what is modified depends on 'geom' type
+ggplot(indices, aes(group=Year, x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=Elevation, x = Elevation, y = rarified))+geom_boxplot(aes(color = year)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=Elevation, x = Elevation, y = rarified))+geom_boxplot(aes(color = year)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=Elevation, x = Elevation, y = rarified))+geom_boxplot(aes(color = Month)) # mapping color in 'aes' vs outside
+ggplot(indices, aes(group=SiteCode, x = Elevation, y = rarified))+geom_boxplot(aes(color = 'SiteCode'))
+ggplot(indices, aes(group=Month, x = Elevation, y = rarified))+geom_boxplot(color = 'blue') # set specific color to ALL
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(aes(color = Elevation, fill = Elevation)) # within 'aes' maps to the levels of a variable
+ggplot(indices, aes(x = Elevation, y = rarified))+geom_boxplot(color = 'darkslateblue', fill = 'yellow')
+ggplot(indices, aes(group=Elevation, x = Elevation, y = rarified))+
+geom_boxplot(aes(color = Elevation))+
+geom_point(aes(color=Elevation), size=3)
+Elevation.rich.aov<-aov(rarified~Elevation, data=indices)
+summary(Elevation.rich.aov)
+pairs(indices%>%dplyr::select(Elevation, Month, Site, richness)) # data exploration
+pairs(indices%>%dplyr::select(Elevation, Month, Site, DateCode, SiteRep, richness)) # data exploration
+rich.lm<-lm(richness~SiteCode*Elevation, data=indices)
+summary(rich.lm)
+summary(aov(rich.lm))
+richTime.lm<-lm(richness~Month*Elevation, data=indices)
+summary(rich.lmTime)
+summary(richTime.lm)
+summary(aov(richTime.lm))
+richTime2.lm<-lm(richness~DateCode*Elevation, data=indices)
+summary(richTime2.lm)
+summary(aov(richTime2.lm))
+richTime3.lm<-lm(richness~Year*Elevation, data=indices)
+summary(richTime3.lm)
+summary(aov(richTime3.lm))
+install.packages(car)
+install.packages(car)
+??MASS
+install.packages("car", lib="/Library/Frameworks/R.framework/Versions/3.3/Resources/library")
+library(dplyr)
+library(dplyr) ## for data wrangling - %>% function
+library(reshape2) ##melt and cast data
+library(tidyr) # 'separate' function
+library(readxl) #read xlsx files into r on mac computer
+library(vegan) # dissimilarity matrix, permanova functions
+setwd('/Users/maltz/Desktop/RdataDust')#downlaoded location of files
+library(readxl)
+library(dplyr)
+library(reshape2)
+library(readr)
+library(ggplot2)# ggplot resource -http://rpubs.com/collnell/ggplot2
+library(tidyverse) # useful packages in 1 - dplyr, ggplot2, tidyr +
+library(data.table) #fread function
+library(MASS)
+car::Anova(rich.lm)
+car::Anova(rich.lm, type='III')
+resids<-resid(rich.lm)
+shapiro.test(resids)
+plot(resids)
+qqnorm(resids)
+qqline(resids)
+rich.env.lm<-lm(richness~Elevation+Month+DateCode, data=indices)
+summary(aov(rich.env.lm))
+Elevation.rich<-indices%>%group_by(Elevation)%>%summarize(mean = mean(richness), sd=sd(richness))
+Elevation.rich<-indices%>%group_by(Elevation)%>%summarize(mean = mean(richness), sd=sd(richness))
+summary(aov(Elevation.rich))
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_point(size=3)
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_point(size=3)+
+geom_errorbar(aes(ymin=mean-se, ymax=mean+sd))
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_point(size=3)+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd))
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-se, ymax=mean+sd), width=0)+
+geom_point(size=3)
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0)+
+geom_point(size=3)
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0)+
+geom_point(size=3)+
+theme(panel.background = element_rect(fill='white'))## change background color
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+se), width=0)+
+geom_point(size=3)+
+theme(panel.background = element_rect(fill='white'))## change background color
+ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0)+
+geom_point(size=3)+
+theme(panel.background = element_rect(fill='white'))## change background color
+myplot<-ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0)+
+geom_point(size=3)+
+theme(panel.background = element_rect(fill='white'), axis.line = element_line(color='black'))
+myplot
+myplot<-ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0)+
+geom_point(size=3)+
+theme(panel.background = element_rect(fill='white'), axis.line = element_line(color='black'))
+myplot
+myplot+theme(axis.text = element_text(size=10)) #tick label text size
+myplot+theme(axis.text = element_text(size=10), axis.title=element_text(size=12)) #axis label size
+myplot+ylim(0,55)
+myplot+ylim(0,NA)
+mynewplot<-myplot+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.1)+ylim(0,NA)+
+theme(axis.text = element_text(size=12), axis.title=element_text(size=14))+
+labs(x='Elevation species', y='Richness')
+mynewplot
+myplot<-ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.1)+
+geom_point(size=3, aes(color=Elevation))+
+theme(panel.background = element_rect(fill='white'), axis.line = element_line(color='black'),
+axis.text = element_text(size=12), axis.title=element_text(size=14))+
+ylim(0,NA)+
+labs(x='Elevation species', y='Richness')
+myplot<-ggplot(Elevation.rich, aes(Elevation, mean))+
+geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=0.1)+
+geom_point(size=3, aes(color=Elevation))+
+theme(panel.background = element_rect(fill='white'), axis.line = element_line(color='black'),
+axis.text = element_text(size=12), axis.title=element_text(size=14))+
+ylim(0,NA)+
+labs(x='Elevation species', y='Richness')
+myplot
+myplot+theme(legend.position='bottom')
+myplot+theme(legend.position='left')
+myplot+theme(legend.position='none')
+myplot+theme(legend.position='none')+
+scale_color_manual(values=c('purple','green'))
+myplot+theme(legend.position='none')+
+scale_color_manual(values=c('purple','green'))
+install.packages('corrplot')
+library(corrplot)
+comm.num<-otu_map%>% dplyr::select_if(is.numeric)
+str(comm.num)
+comm.cor<-cor(comm.num)
+corrplot(comm.cor) # hard to digest
+corrplot(comm.cor, order='alphabet', tl.col='black')
+corrplot(cor(comm.mat), order='hclust', hclust.method='average', tl.col='black', tl.cex=.75)
+comm.rel<-decostand(comm.mat2, method='total')# relative composition
+comm.dis<-vegdist(comm.mat2, method='bray')# dissimialrity
+Elevation.perm<-adonis(comm.dis~Elevation, data=comm.grps, permutations=10000)
+Elevation.perm
+DateCode.Elevation.perm<-adonis(comm.dis~Elevation*DateCode, data=comm.grps, permutations=10000)
+DateCode.Elevation.perm
+Month.Elevation.perm<-adonis(comm.dis~Elevation*Month, data=comm.grps, permutations=10000)
+Month.Elevation.perm
+dust.perm<-adonis2(comm.dis~Month, data=comm.grps, permutations=10000, strata='Elevation')
+dust.perm # so even though overall diversity did not differ with dust level, there are compositional changes
+comm.hclust<-hclust(comm.dis, method='average')
+plot(comm.hclust, labels=comm.grps$sample) # numbers correspond to row numbers unless declared
+plot(comm.hclust, labels=comm.grps$level)
+plot(comm.hclust, labels=comm.grps$Month)
+plot(comm.hclust, labels=comm.grps$SiteRep)
+plot(comm.hclust, labels=comm.grps$SiteCode)
+plot(comm.hclust, labels=comm.grps$Year)
+plot(comm.hclust, labels=comm.grps$Year*SiteCode)
+plot(comm.hclust, labels=comm.grps$Year+Month)
+plot(comm.hclust, labels=comm.grps$Year)
+comm.nmds<-metaMDS(comm.dis)
+comm.nmds<-metaMDS(comm.rel, distance='bray') # can give either community matrix of ready made dissimilarities
+metaMDS(comm.mat, distance='bray') # applies sqrt and wisconsin double standardization, high stress
+comm.nmds #  stress = 0.13 good
+stressplot(comm.nmds) # observed vs cnonfigured distances. closer to R2 =1 is ideal
+ordiplot(comm.nmds, display='sites', type='text')
+ordipointlabel(comm.nmds) # hard to maipulate this to look as you want
+ordiellipse(comm.nmds, comm.grps$Elevation, conf=0.95, label=TRUE) # ovelray 95%CI
+ordicluster(comm.nmds, comm.hclust, col='gray')# clsuter - hard to see
+nmds.sites<-as.data.frame(comm.nmds$points)
+View(nmds.sites)# note - rows correspond to the samples
+nmds.sites$Elevation<-comm.grps$Elevation
+nmds.sites$level<-comm.grps$level
+nmds.sites$Elevation<-comm.grps$Elevation
+nmds.sites$Month<-comm.grps$Month
+nmds.sites$Year<-comm.grps$Year
+nmds.sites$SiteCode<-comm.grps$SiteCode
+comm.nmds$points[,2]#the first column MDS1
+nmds.sites<-data.frame(NMDS1 = comm.nmds$points[,1],
+NMDS2 = comm.nmds$points[,2],
+Elevation = comm.grps$Elevation,
+rep = comm.grps$level,
+group = comm.grps$pH,
+SID = comm.grps$OrganicMatter)
+comm.nmds$points[,2]#the first column MDS1
+nmds.sites<-data.frame(NMDS1 = comm.nmds$points[,1],
+NMDS2 = comm.nmds$points[,2],
+Elevation = comm.grps$Elevation,
+rep = comm.grps$level,
+group = comm.grps$pH,
+SID = comm.grps$OrganicMatter)
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2))
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Elevation), size=3)
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Elevation, color=level), size=3)
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Elevation, color=level, size=pH))
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Month, color=Year, size=pH))
+nmds.sp<-data.frame(NMDS1 = comm.nmds$species[,1],
+NMDS2 = comm.nmds$species[,2])
+View(nmds.sp)
+nmds.sp$order<-rownames(nmds.sp) #make variable for names
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Elevation, color=level), size=3)+
+geom_text(data=nmds.sp, aes(x=NMDS1, y=NMDS2, label=order))
+ggplot(data=nmds.sites)+
+geom_point(aes(x=NMDS1, y=NMDS2, shape=Month, color=level), size=3)+
+geom_text(data=nmds.sp, aes(x=NMDS1, y=NMDS2, label=order))
+ggplot()+
+geom_point(data=nmds.sites, aes(x=NMDS1, y=NMDS2, shape=Elevation, color=level), size=3)+
+geom_text(data=nmds.sp, aes(x=NMDS1, y=NMDS2, label=order))
+str(nmds.sp)
+colSums(comm.mat) # total in each column
+sum(colSums(comm.mat)) ##total
+100*colSums(comm.mat)/sum(colSums(comm.mat)) # percentage of total
+100*colSums(comm.mat)/sum(colSums(comm.mat)) > 1 # which columns are greater than .1%?
+colSums(comm.mat2) # total in each column
+sum(colSums(comm.mat2)) ##total
+100*colSums(comm.mat2)/sum(colSums(comm.mat)) # percentage of total
+100*colSums(comm.mat2)/sum(colSums(comm.mat)) > 1 # which columns are greater than .1%?
+100*colSums(comm.mat2)/sum(colSums(comm.mat2)) # percentage of total
+100*colSums(comm.mat2)/sum(colSums(comm.mat2)) > 1 # which columns are greater than .1%?
+top.orders<-comm.mat2[,100*colSums(comm.mat2)/sum(colSums(comm.mat2)) > .1] # selecct only the columns that are >1
+dim(top.orders) ##reduces to 25 orders
+top.list<-colnames(top.orders)
+nmds.sp.top<-nmds.sp%>%filter(order %in% top.list)
+top.classes<-comm.mat2[,100*colSums(comm.mat2)/sum(colSums(comm.mat2)) > .1] # selecct only the columns that are >1
+dim(top.classes) ##reduces to 25 orders
+top.list<-colnames(top.classes)
+nmds.sp.top<-nmds.sp%>%filter(class %in% top.list)
+nmds.sp.top<-nmds.sp%>%filter(order %in% top.list)
+ggplot()+
+geom_point(data=nmds.sites, aes(x=NMDS1, y=NMDS2, shape=Elevation, color=level), size=3)+
+geom_text(data=nmds.sp.top, aes(x=NMDS1, y=NMDS2, label=order))
+ggplot()+
+geom_point(data=nmds.sites, aes(x=NMDS1, y=NMDS2, shape=Year, color=level), size=3)+
+geom_text(data=nmds.sp.top, aes(x=NMDS1, y=NMDS2, label=order))
+ggplot()+
+geom_point(data=nmds.sites, aes(x=NMDS1, y=NMDS2, shape=Month, color=level), size=3)+
+geom_text(data=nmds.sp.top, aes(x=NMDS1, y=NMDS2, label=order))
+nmds.plot<-ggplot(data=nmds.sites, aes(x=NMDS1, y=NMDS2))+
+geom_point(size=3, aes(shape=Elevation, color=level))+¬†
+geom_text(data=nmds.sp.top, aes(x=NMDS1, y=NMDS2, label=order))+
+theme_minimal()
+nmds.plot
+nmds.plot+stat_ellipse(aes(color=level, lty=level)) # lty = linetype
+nmds.plot+stat_ellipse(aes(color=Elevation, lty=Month)) # lty = linetype
+library(tidyverse)
+library(reshape2)
+library(ggplot2)
+getwd()
+library(tidyverse)
+?read.table
+library(dplyr)
+library(dplyr) ## for data wrangling - %>% function
+library(reshape2) ##melt and cast data
+library(tidyr) # 'separate' function
+library(readxl) #read xlsx files into r on mac computer
+library(vegan) # dissimilarity matrix, permanova functions
+setwd('/Users/maltz/Desktop/RdataDust')#downlaoded location of files
+list.files()#show filenames in current working directory
+list.files()#show filenames in current working directory
+list.files() #files in 'Dust' folder in the working directory
+list.files()[3] # third file in that folder (for me it's"")
+list.files() # and so on
+list.files( ,pattern = '.txt') #all txt files
+list.dirs()#everything in folder
+everything
+everything
+list.files()
+library(readxl)
+View(map)
+map1<-read_excel("SierraMap6.xlsx", header = TRUE, col_names = c('SampleID','BarcodeSequence','LinkerPrimer','Year','Month','SiteCode','RepNum','SiteRep','Site','Elevation','DateCode','DescName','Description'))
+map1<-read_excel("SierraMap6.xlsx", header = FALSE, col_names = c('SampleID','BarcodeSequence','LinkerPrimer','Year','Month','SiteCode','RepNum','SiteRep','Site','Elevation','DateCode','DescName','Description'))
+map1<-read_excel("SierraMap6.xlsx", col_names = c('SampleID','BarcodeSequence','LinkerPrimer','Year','Month','SiteCode','RepNum','SiteRep','Site','Elevation','DateCode','DescName','Description'))
+#'#SampleID	BarcodeSequence	LinkerPrimerSequence	Year	Month	SiteCode	RepNum	SiteRep	Site	Elevation	DateCode	DescName	Description
+#'
+View(map1)
+map1<-read_excel("SierraMap6.xlsx", skip = 1, col_names = c('SampleID','BarcodeSequence','LinkerPrimer','Year','Month','SiteCode','RepNum','SiteRep','Site','Elevation','DateCode','DescName','Description'))
+#'#SampleID	BarcodeSequence	LinkerPrimerSequence	Year	Month	SiteCode	RepNum	SiteRep	Site	Elevation	DateCode	DescName	Description
+#'
+View(map1)
+library(dplyr)
+library(dplyr) ## for data wrangling - %>% function
+library(reshape2) ##melt and cast data
+library(tidyr) # 'separate' function
+library(readxl) #read xlsx files into r on mac computer
+library(vegan) # dissimilarity matrix, permanova functions
+setwd('/Users/maltz/Desktop/RdataDust')#downlaoded location of files
+list.files()#show filenames in current working directory
+list.files()#show filenames in current working directory
+list.files() #files in 'Dust' folder in the working directory
+list.files()[3] # third file in that folder (for me it's"")
+list.files() # and so on
+list.files( ,pattern = '.txt') #all txt files
+list.dirs()#everything in folder
+list.files()
+map<-map
+View(du16s) # but the first line is the column header
+savehistory("~/Desktop/RdataDust/HistoryRdataDust201807.Rhistory")
+

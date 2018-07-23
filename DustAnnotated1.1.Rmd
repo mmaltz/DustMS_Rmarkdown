@@ -1,0 +1,147 @@
+---
+title: "Dust_annotated_1.1"
+author: "Maltz, Mia R."
+date: "7/19/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, tidy = TRUE, warning = FALSE)
+```
+## R Markdown
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For   more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+  ## goals - read in mapping file, OTU tables, and distance matrices (weighted or unweighted)  
+  # assess community composition differences between Dust microbial communities ( also by Month/TimePointIntegration/Elevation and the interactions), 
+  # work with OTU table which used numeric values, (likely work with presence absence data, to account for accumulation of      microbial taxa in dust collectors; 
+  # expand stats using distance matrices. 
+  # PERMANOVA,exploring other community analyses, RDA
+  # Indicator analyses
+
+```{r Set working directory and list files in wd}
+setwd("/Users/maltz/Desktop/RdataDust")
+list.files()
+```
+
+#preliminaries: load packages
+```{r Load preliminary packages}
+library(dplyr) ## for data wrangling - %>% function
+library(reshape2) ##melt and cast data
+library(tidyr) # 'separate' function
+library(readxl) #read xlsx files into r on mac computer
+library(vegan) # dissimilarity matrix, permanova functions
+library(tidyverse)
+library(ggplot2) # plotting
+library(magrittr)
+```
+
+#Browse computer files in R, Read in files
+  #Read in mapping file "/Users/maltz/Desktop/RdataDust/SierraMap6.csv"
+  #Column headers: #SampleID	BarcodeSequence	LinkerPrimerSequence	Year	Month	SiteCode	RepNum	SiteRep	Site	Elevation	  DateCode	DescName	Description
+  #Take note of the name of the column containing your samples names (e.g., SampleID, #SampleID, sample); case is important
+  #Mapping file can also be read in as a .txt or a .csv file with read.table for .txt and read_excel for .xlsx etc.
+  e.g., map1<-read_excel("tmp.csv", skip=1, col_names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
+```{r Read in mapping file as a .csv}
+map6<-read.csv("SierraMap6.csv", header = TRUE)
+View(map6)
+```
+#Read in .xslx file
+```{r Reading in mapping file with read_excel when it is a .xlsx file format}
+map1<-read_excel("SierraMap6.xlsx", skip=1, col_names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
+str(map1)
+View(map1)
+```
+
+#Read in otu table for 16S for two years (2015 and 2016) 
+  #across four elevations, spanning four sites 
+  #three date codes across four months 
+  #otu table filepath from working directory: "/Users/maltz/Desktop/RdataDust/filtered_table.csv"
+```{r read in OTU table as a .csv}
+B16S<-read.csv("filtered_table.csv", header = TRUE, stringsAsFactors = F)
+
+```
+#Count fields 
+  #How many columns are in each row?
+  #What is the structure of the data frame
+  #View the dataframe
+  #This keeps taxonomy as one column
+```{r View the structure of OTU table}
+count.fields("filtered_table.csv")
+str(B16S)
+View(B16S)
+
+```
+#Read in otu table as a table and split out taxonomy into multiple columns
+  #spell out column names, and split out kingdom (domain for this gene region) to species (or epithet, as I entitled the final column in this dataframe)
+```{r}
+dust16s<-read.table("filtered_table_w_metadata.txt", fill=TRUE, skip=1, 
+                    col.names=c('OTUID','OJ514','JJ415','JT115','JJ515','OJ615','OJ415','JP414','AP114','JT314','OJ515','JJ114','JT415','JS115','OP515','JP315','OP315','OP615','OS615','OS115','OT515','OT415','AS114','OT414','AT414','OT115','AJ414','OS415','JS415','OS214','JP515','OP614',
+                                'domain','phylum','class','order','family','genus','species','epithet'))
+str(dust16s)
+View(dust16s)
+```
+
+
+#Experiment headerfun
+#header_fun<-function(x){
+#  taxa_list<-c('kingdom','phylum','class','order','family','genus','species') #taxonomy column headers
+#  temp.df<-read.table(otu_path[1], fill=TRUE, stringsAsFactors = FALSE)
+#  head_list<-as.character(temp.df[1, 1:(length(temp.df)-7)]) #dataframe headers
+#  out.df<-read.table(x, fill=TRUE, skip=1,col.names=c(head_list,taxa_list)) # read in and assign headers
+#  out.df$file<-paste(x) # create additional column that designates source file
+#  return(out.df)
+#}
+
+function(all_otus){
+  taxa_list<-c('domain','phylum','class','order','family','genus','species','epithet')%>%
+  temp.df<-read.table(all_otus, fill = TRUE, stringsAsFactors = FALSE)%>%
+  head_list<-as.character(temp.df[1, 1:(length(temp.df)-7)])%>%
+  out.df<-read.table(all_otus, fill=TRUE, skip = 1, col.names=c(head_list,taxa_list))%>%
+  out.df$file<-paste(all_otus)%>%
+  out.df.melt<-melt(out.df, id.vars=c('ID','file', taxa_list), value.name='count', variable.name='sample')%>%
+  return(out.df.melt)
+  
+  
+function(B16S){
+  taxa_list<-c('domain','phylum','class','order','family','genus','species','epithet')%>%
+  temp.df<-read.table(B16S, fill = TRUE, stringsAsFactors = FALSE)%>%
+  head_list<-as.character(temp.df[1, 1:(length(temp.df)-7)])%>%
+  out.df<-read.table(all_otus, fill=TRUE, skip = 1, col.names=c(head_list,taxa_list))%>%
+  out.df$file<-paste(all_otus)%>%
+  out.df.melt<-melt(out.df, id.vars=c('ID','file', taxa_list), value.name='count', variable.name='sample')%>%
+  return(out.df.melt)
+  
+  
+}
+```{r}
+
+}
+
+str(out.df)
+```
+
+
+```{r}
+header_fun<-function("filtered_table_w_metadata.txt"){
+  taxa_list<-c('kingdom','phylum','class','order','family','genus','species') #taxonomy column headers
+  temp.df<-read.table(otu_path[1], fill=TRUE, stringsAsFactors = FALSE)
+  head_list<-as.character(temp.df[1, 1:(length(temp.df)-7)]) #dataframe headers
+  out.df<-read.table(x, fill=TRUE, skip=1,col.names=c(head_list,taxa_list)) # read in and assign headers
+  out.df$file<-paste(x) # create additional column that designates source file
+  return(out.df)
+}
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -1,0 +1,51 @@
+---
+title: "dust"
+author: "C. Nell"
+date: "7/23/2018"
+output: 
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+---
+
+This file is saved in the RdataDust folder  
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Logic and questions  
+
+####**Background:** Dust entering the Sierras comes from both regional and global sources -- and the contribution of each source changes over time. There is evidence that microbial communities can differ based on dust source and timing of dust deflation, and that this can have subsequent effects on endophytic associations (Caroline Frank’s work) and soil microbial communities at the deposition location. We therefore wanted to know:  
+  
+###**Q1. Do dust-associated microbial communities entering the Sierra Nevada differ across space and time?**   
+
+####Outputs:   
+####1. Determine the number of new OTUs identified at each site per sampling event  
+####2. NMDS of unweighted unifrac or jaccard dissimilarity. PERMANOVA with PERMDISP. 
+*Limitation: our time comparisons may be skewed because we did not sterilize collectors in between sampling events. Time points may appear more similar to each other than in reality. It’s also important to run on presence-absence data only; we don’t want to capture community differences that are driven by post-depositional divergence in relative abundances.*  
+
+###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**   
+*Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data* 
+
+#### Outputs:  
+
+####1. Indicator species analysis to identify taxon-habitat association patterns.  
+This procedure identifies OTUs as indicator species independently from their abundance in the total data set. 
+####Steps (from https://www.nature.com/articles/ismej2015238):   
+
+  a. single- and doubleton OTUs are removed as they hold little indicator informationusing the multipatt function (number of permutations=9999) implemented in the indicspecies R package (De Cáceres et al., 2010). 
+  b. To account for multiple testing, P-values were corrected by calculating false discovery rates (q-values) with the q-value function implemented in the BiocLite R package (Dabney and Storney, 2014). Indicator OTUs with q<0.05 were considered significant. 
+  c. Indicator taxa were represented in bipartite networks by using the edge-weighted spring embedded algorithm layout implemented in Cytoscape v.3.0.2 (Shannon et al., 2003) where point biserial correlation values, a measure of species–habitat association, were used to weight the edges between nodes constituting the habitats and indicator OTUs (Hartmann et al., 2015). 
+  d. We further mapped these indicator OTUs on taxonomic networks generated in Cytoscape v.3.0.2 to investigate potential taxa–habitat associations (Hartmann et al., 2015).  
+  e. Indicator OTUs classified at the genus level were displayed in a taxonomic tree generated in iTOL (Letunic and Bork, 2011) together with the positive point biserial correlation values associated with each habitat.  
+  f. To find patterns of co-occurrence among OTUs characteristic of the habitats studied, we analysed correlations among the relative abundances of all indicator OTUs (co-correlations) by calculating Spearman rank correlation values (Spearman, 1904) in R with the function corr.test implemented in the package psych. Multiple testing was accounted for by correcting P-values with a false discovery rates of 5% (q-value<0.05).  
+  g. Bacterial and fungal indicator OTUs that were significantly co-correlated were displayed in networks with the edge-weighted spring embedded algorithm layout implemented in Cytoscape where Spearman correlation values were used to weight the edges between the nodes representing the OTUs (Hartmann et al., 2015).”   
+
+###**Q3. Can the observed variation in XXX be explained by provenance? By nutrient composition?**
+####Outputs: 
+####1. Multiple regression on distance matrix  
+
+branch this file  
+
+

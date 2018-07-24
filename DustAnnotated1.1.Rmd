@@ -6,8 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, tidy = TRUE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, error = TRUE, eval = TRUE, message = FALSE, tidy = TRUE, warning = FALSE)
 ```
 ## R Markdown
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For   more details on using R Markdown see <http://rmarkdown.rstudio.com>.
@@ -19,11 +18,6 @@ When you click the **Knit** button a document will be generated that includes bo
   # expand stats using distance matrices. 
   # PERMANOVA,exploring other community analyses, RDA
   # Indicator analyses
-
-```{r Set working directory and list files in wd}
-setwd("/Users/maltz/Desktop/RdataDust")
-list.files()
-```
 
 #preliminaries: load packages
 ```{r Load preliminary packages}
@@ -44,7 +38,9 @@ library(magrittr)
   #Mapping file can also be read in as a .txt or a .csv file with read.table for .txt and read_excel for .xlsx etc.
   e.g., map1<-read_excel("tmp.csv", skip=1, col_names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
 ```{r Read in mapping file as a .csv}
-map6<-read.csv("SierraMap6.csv", header = TRUE)
+# wd is set to /RdataDust/DustMS_Rmarkdown which contains this file and all other linked files (or should)
+list.files()
+map6<-read.csv("~/SierraMap6.csv", header = TRUE)
 View(map6)
 ```
 #Read in .xslx file
@@ -135,13 +131,3 @@ header_fun<-function("filtered_table_w_metadata.txt"){
 
 
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

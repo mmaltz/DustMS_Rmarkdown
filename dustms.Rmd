@@ -14,6 +14,16 @@ This file is saved in the RdataDust folder
 knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, warning = FALSE)
 ```
 
+```{r Load preliminary packages}
+library(dplyr) ## for data wrangling - %>% function
+library(reshape2) ##melt and cast data
+library(tidyr) # 'separate' function
+library(readxl) #read xlsx files into r on mac computer
+library(vegan) # dissimilarity matrix, permanova functions
+library(tidyverse)
+library(ggplot2) # plotting
+library(magrittr)
+```
 ## Logic and questions  
 
 ####**Background:** Dust entering the Sierras comes from both regional and global sources -- and the contribution of each source changes over time. There is evidence that microbial communities can differ based on dust source and timing of dust deflation, and that this can have subsequent effects on endophytic associations (Caroline Frank’s work) and soil microbial communities at the deposition location. We therefore wanted to know:  
@@ -25,9 +35,73 @@ knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, warning = FALS
 ####2. NMDS of unweighted unifrac or jaccard dissimilarity. PERMANOVA with PERMDISP. 
 *Limitation: our time comparisons may be skewed because we did not sterilize collectors in between sampling events. Time points may appear more similar to each other than in reality. It’s also important to run on presence-absence data only; we don’t want to capture community differences that are driven by post-depositional divergence in relative abundances.*  
 
+```{r read in mapping data}
+# wd is set to /RdataDust/DustMS_Rmarkdown which contains this file and all other linked files (or should)
+getwd()
+# i made a folder in this directory named data where I left it
+list.files('data')
+
+map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
+str(map6)
+```
+
+```{r}
+# I don't have the same files referenced in DustAnnotated1.1
+B16S<-read.csv("data/filtered_table_w_metadata.csv", header = TRUE, stringsAsFactors = FALSE)
+head(str(B16S))
+```  
+```{r separate taxonomy}
+head(B16S$taxonomy)
+
+library(stringr)
+
+# extract the string between k__ and ; for the kingdoms
+B16S$kingdom<-str_match(B16S$taxonomy, "k__(.*?);")[,2]
+head(B16S$kingdom)
+
+# do the same for other taxa groupings 
+B16S$phylum<-str_match(B16S$taxonomy, "p__(.*?);")[,2]
+B16S$class<-str_match(B16S$taxonomy, "c__(.*?);")[,2]
+B16S$order<-str_match(B16S$taxonomy, "o__(.*?);")[,2]
+B16S$family<-str_match(B16S$taxonomy, "f__(.*?);")[,2]
+B16S$genus<-str_match(B16S$taxonomy, "g__(.*?);")[,2]
+B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
+
+```
+```{r taxa function}
+# would be useful to have afunction that does this if data frequently in same format
+split_taxa<-function(df, col='taxonomy'){
+  df$kingdom<-str_match(df[,col], "k__(.*?);")[,2]
+  df$phylum<-str_match(df[,col], "p__(.*?);")[,2]
+  df$class<-str_match(df[,col], "c__(.*?);")[,2]
+  df$order<-str_match(df[,col], "o__(.*?);")[,2]
+  df$family<-str_match(df[,col], "f__(.*?);")[,2]
+  df$genus<-str_match(df[,col], "g__(.*?);")[,2]
+  df$species<-str_match(df[,col], "s__(.*?)")[,2]
+  return(df)
+}
+
+splitdf<-split_taxa(df=B16S)
+head(splitdf[1:5,33:40])
+
+```  
+```{r}
+# to use this in the future - create an rscript to store functions 
+# then you can call upon it in any rscript and reuse the same functions without copy/pasting 
+
+source('dust_functions.R')
+
+```
+
+```{r}
+
+
+
+```
+
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**   
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data* 
-
+stop here
 #### Outputs:  
 
 ####1. Indicator species analysis to identify taxon-habitat association patterns.  

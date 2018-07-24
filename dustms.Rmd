@@ -116,6 +116,8 @@ This procedure identifies OTUs as indicator species independently from their abu
   f. To find patterns of co-occurrence among OTUs characteristic of the habitats studied, we analysed correlations among the relative abundances of all indicator OTUs (co-correlations) by calculating Spearman rank correlation values (Spearman, 1904) in R with the function corr.test implemented in the package psych. Multiple testing was accounted for by correcting P-values with a false discovery rates of 5% (q-value<0.05).  
   g. Bacterial and fungal indicator OTUs that were significantly co-correlated were displayed in networks with the edge-weighted spring embedded algorithm layout implemented in Cytoscape where Spearman correlation values were used to weight the edges between the nodes representing the OTUs (Hartmann et al., 2015).”   
 
+it teruherfgbwegrgterfghgfhgf
+
 ###**Q3. Can the observed variation in XXX be explained by provenance? By nutrient composition?**
 ####Outputs: 
 ####1. Multiple regression on distance matrix  

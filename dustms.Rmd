@@ -24,9 +24,9 @@ library(tidyverse)
 library(ggplot2) # plotting
 library(magrittr)
 ```
-## Logic and questions  
+### Logic   
 
-####**Background:** Dust entering the Sierras comes from both regional and global sources -- and the contribution of each source changes over time. There is evidence that microbial communities can differ based on dust source and timing of dust deflation, and that this can have subsequent effects on endophytic associations (Caroline Frank’s work) and soil microbial communities at the deposition location. We therefore wanted to know:  
+**Background:** Dust entering the Sierras comes from both regional and global sources -- and the contribution of each source changes over time. There is evidence that microbial communities can differ based on dust source and timing of dust deflation, and that this can have subsequent effects on endophytic associations (Caroline Frank’s work) and soil microbial communities at the deposition location. We therefore wanted to know:  
   
 ###**Q1. Do dust-associated microbial communities entering the Sierra Nevada differ across space and time?**   
 
@@ -68,7 +68,7 @@ B16S$genus<-str_match(B16S$taxonomy, "g__(.*?);")[,2]
 B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 
 ```
-```{r taxa function}
+```{r split taxa function}
 # would be useful to have afunction that does this if data frequently in same format
 split_taxa<-function(df, col='taxonomy'){
   df$kingdom<-str_match(df[,col], "k__(.*?);")[,2]
@@ -99,9 +99,9 @@ source('dust_functions.R')
 
 ```
 
-###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**   
-*Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data* 
-stop here
+###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
+*Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   
+  
 #### Outputs:  
 
 ####1. Indicator species analysis to identify taxon-habitat association patterns.  

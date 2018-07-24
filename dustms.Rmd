@@ -45,7 +45,7 @@ list.files('data')
 map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
 
 # print df
-map
+map6
 ```
 
 ```{r}

@@ -14,7 +14,7 @@ output:
 knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
 ```
 
-```{r Load preliminary packages}
+```{r Load preliminary packages, include=FALSE}
 library(dplyr) ## for data wrangling - %>% function
 library(reshape2) ##melt and cast data
 library(tidyr) # 'separate' function
@@ -45,21 +45,23 @@ list.files('data')
 map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
 
 # print df
-map
+map6
 ```
 
 ```{r}
 # I don't have the same files referenced in DustAnnotated1.1
 B16S<-read.csv("data/filtered_table_w_metadata.csv", header = TRUE, stringsAsFactors = FALSE)
-head(B16S)
+B16S
 ```  
+
 #### Split taxonomy  
-```{r separate taxonomy}
+```{r separate taxonomy, include=FALSE, eval=FALSE}
 head(B16S$taxonomy)
 
 # extract the string between k__ and ; for the kingdoms
-B16S$kingdom<-str_match(B16S$taxonomy, "k__(.*?);")[,2]
+B16S$kingdom<-str_match(B16S$taxonomy, "k__(.*?);")[,2] #regex
 head(B16S$kingdom)
+unique(B16S$kingdom)
 
 # do the same for other taxa groupings 
 B16S$phylum<-str_match(B16S$taxonomy, "p__(.*?);")[,2]
@@ -69,31 +71,14 @@ B16S$family<-str_match(B16S$taxonomy, "f__(.*?);")[,2]
 B16S$genus<-str_match(B16S$taxonomy, "g__(.*?);")[,2]
 B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 
-```
-```{r split taxa function}
-# would be useful to have afunction that does this if data frequently in same format
-split_taxa<-function(df, col='taxonomy'){
-  df$kingdom<-str_match(df[,col], "k__(.*?);")[,2]
-  df$phylum<-str_match(df[,col], "p__(.*?);")[,2]
-  df$class<-str_match(df[,col], "c__(.*?);")[,2]
-  df$order<-str_match(df[,col], "o__(.*?);")[,2]
-  df$family<-str_match(df[,col], "f__(.*?);")[,2]
-  df$genus<-str_match(df[,col], "g__(.*?);")[,2]
-  df$species<-str_match(df[,col], "s__(.*?)")[,2]
-  return(df)
-}
-
-splitdf<-split_taxa(df=B16S)
-head(splitdf)
-
 ```  
+
 ```{r}
-# to use this in the future - create an rscript to store functions 
-# then you can call upon it in any rscript and reuse the same functions without copy/pasting 
-
+# split taxa groupings into new columns
 source('dust_functions.R')
-
-```
+splitdf<-split_taxa(B16S)
+head(splitdf)
+```  
   
 #### Read in unifrac distances    
 ```{r}
@@ -101,40 +86,25 @@ list.files('data')
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
 unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
 #rows and col reflect pairwise distances?
+str(unifrac)
 
-```
+```  
 
 ```{r}
 ## plot otu unifrac dissimilarities as heatmap
-
 # first melt df so there is a new row for every pairwise combo
-colnames(unifrac)
-
 unifrac.melt<-unifrac%>%melt(variable.name='otu_1')%>%mutate(otu_2 = rep.int(colnames(unifrac), times=length(colnames(unifrac))))
 
-ggplot(data = unifrac.melt, aes(x = otu_1, y = otu_2))+ geom_tile(aes(fill = value))
-
-```  
-```{r}
-#recreate plot but rotate x-axis titles so legible
-
 ```  
 
 ```{r}
-# changing color scales
-
-ggplot(data = unifrac.melt, aes(x = otu_1, y = otu_2))+ 
-  geom_tile(aes(fill = value))+
-  scale_fill_gradient2(low = 'midnightblue', mid='deepskyblue3', high='yellow', midpoint = .5)
-
-# high color indicates samples that were more similar to one another based on unifrac dissimilarity, blue = contains no similarities  
-
+# dark color indicates samples that were more similar to one another based on unifrac dissimilarity, blue = contains no similarities  
 ##reorder axis so grouped by more similar samples
 ggplot(data = unifrac.melt, aes(x = reorder(otu_1, value), y = reorder(otu_2, value)))+ 
   geom_tile(aes(fill = value))+
-  scale_fill_gradient2(low = 'midnightblue', mid='deepskyblue3', high='yellow', midpoint = .5)
-
-## rename axis labels
+  scale_fill_gradient2(low = 'midnightblue', mid='deepskyblue3', high='yellow', midpoint = .5)+
+  theme(axis.text.x = element_text(angle=90))+
+  labs(x='Sample', y='Sample')
 
 ```
 ```{r}

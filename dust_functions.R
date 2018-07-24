@@ -3,6 +3,8 @@
 ## split taxa
 # a function that splits otu table output with taxonomy listed all in one column to seprate columns for each grouping
 # provide dataframe and name of column containing the taxonomy list
+# 
+
 split_taxa<-function(df, col='taxonomy'){
   df$kingdom<-str_match(df[,col], "k__(.*?);")[,2]
   df$phylum<-str_match(df[,col], "p__(.*?);")[,2]
@@ -13,3 +15,4 @@ split_taxa<-function(df, col='taxonomy'){
   df$species<-str_match(df[,col], "s__(.*?)")[,2]
   return(df)
 }
+

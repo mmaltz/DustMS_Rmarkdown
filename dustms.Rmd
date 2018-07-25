@@ -37,7 +37,7 @@ library(magrittr)
 *Limitation: our time comparisons may be skewed because we did not sterilize collectors in between sampling events. Time points may appear more similar to each other than in reality. It’s also important to run on presence-absence data only; we don’t want to capture community differences that are driven by post-depositional divergence in relative abundances.*  
 
 ```{r read in mapping data}
-# wd is set to /RdataDust/DustMS_Rmarkdown which contains this file and all other linked files (or should)
+# wd is set to "/Users/maltz/Documents/GitHub/DustMS_Rmarkdown" which contains this file and all other linked files (or should)
 getwd()
 # i made a folder in this directory named data where I left it
 list.files('data')

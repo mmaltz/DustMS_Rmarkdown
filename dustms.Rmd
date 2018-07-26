@@ -7,11 +7,10 @@ output:
     toc: TRUE
     toc_float: TRUE
     toc_depth: 4
-    df_print: paged 
 ---
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
+knitr::opts_chunk$set(tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
 ```
 
 ```{r Load preliminary packages, include=FALSE}
@@ -44,24 +43,18 @@ list.files('data')
 
 map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
 
-# print df
-map6
 ```
 
 ```{r}
 # I don't have the same files referenced in DustAnnotated1.1
 B16S<-read.csv("data/filtered_table_w_metadata.csv", header = TRUE, stringsAsFactors = FALSE)
-B16S
+
 ```  
 
 #### Split taxonomy  
 ```{r separate taxonomy, include=FALSE, eval=FALSE}
-head(B16S$taxonomy)
-
 # extract the string between k__ and ; for the kingdoms
 B16S$kingdom<-str_match(B16S$taxonomy, "k__(.*?);")[,2] #regex
-head(B16S$kingdom)
-unique(B16S$kingdom)
 
 # do the same for other taxa groupings 
 B16S$phylum<-str_match(B16S$taxonomy, "p__(.*?);")[,2]
@@ -77,12 +70,10 @@ B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 # split taxa groupings into new columns
 source('dust_functions.R')
 B16S<-split_taxa(B16S)
-head(B16S)
 ```  
   
 #### Read in unifrac distances    
 ```{r}
-list.files('data')
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
 unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
 
@@ -91,7 +82,8 @@ unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
 ```{r}
 ## plot otu unifrac dissimilarities as heatmap
 # first melt df so there is a new row for every pairwise combo
-unifrac.melt<-unifrac%>%melt(variable.name='otu_1')%>%mutate(otu_2 = rep.int(colnames(unifrac), times=length(colnames(unifrac))))
+unifrac.melt<-unifrac%>%melt(variable.name='otu_1')%>%
+  mutate(otu_2 = rep.int(colnames(unifrac), times=length(colnames(unifrac))))
 
 ```  
 

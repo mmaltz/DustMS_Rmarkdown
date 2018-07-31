@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
+knitr::opts_chunk$set(cache=TRUE, tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
 ```
 
 ```{r Load preliminary packages, include=FALSE}
@@ -23,6 +23,8 @@ library(tidyverse)
 library(stringr)
 library(ggplot2) # plotting
 library(magrittr)
+library(cowplot)
+
 ```
 ### Logic   
 
@@ -35,23 +37,22 @@ library(magrittr)
 ####2. NMDS of unweighted unifrac or jaccard dissimilarity. PERMANOVA with PERMDISP. 
 *Limitation: our time comparisons may be skewed because we did not sterilize collectors in between sampling events. Time points may appear more similar to each other than in reality. It’s also important to run on presence-absence data only; we don’t want to capture community differences that are driven by post-depositional divergence in relative abundances.*  
 
-```{r read in mapping data}
-# wd is set to /RdataDust/DustMS_Rmarkdown which contains this file and all other linked files (or should)
-getwd()
-# i made a folder in this directory named data where I left it
-list.files('data')
-
+```{r read in mapping data, include=FALSE}
 map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
-
-```
-
-```{r}
-# I don't have the same files referenced in DustAnnotated1.1
-B16S<-read.csv("data/filtered_table_w_metadata.csv", header = TRUE, stringsAsFactors = FALSE)
 
 ```  
 
-#### Split taxonomy  
+#### Prepare data
+Split taxonomy column into multiple variables
+```{r}
+# bacteria otu
+B16S<-read.csv("data/filtered_table_w_metadata.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# split taxa groupings into new columns
+source('dust_functions.R')
+B16S<-split_taxa(B16S)
+```  
+
 ```{r separate taxonomy, include=FALSE, eval=FALSE}
 # extract the string between k__ and ; for the kingdoms
 B16S$kingdom<-str_match(B16S$taxonomy, "k__(.*?);")[,2] #regex
@@ -65,49 +66,52 @@ B16S$genus<-str_match(B16S$taxonomy, "g__(.*?);")[,2]
 B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 
 ```  
-
-```{r}
-# split taxa groupings into new columns
-source('dust_functions.R')
-B16S<-split_taxa(B16S)
-```  
   
-#### Read in unifrac distances    
+#### Read in UniFrac distances    
+UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be invfluencd by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
+Use to compare phylogenetic lineages between groups, to cluster samples. 
 ```{r}
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
 unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
 
 ```  
-
-```{r}
+Use heatmap to visualize sample dissimilarity based on UniFrac  
+```{r, fig.width=10, fig.height=4}
 ## plot otu unifrac dissimilarities as heatmap
 # first melt df so there is a new row for every pairwise combo
 unifrac.melt<-unifrac%>%melt(variable.name='otu_1')%>%
   mutate(otu_2 = rep.int(colnames(unifrac), times=length(colnames(unifrac))))
 
-```  
-
-```{r}
 # dark color indicates samples that were more similar to one another based on unifrac dissimilarity, blue = contains no similarities  
 ##reorder axis so grouped by more similar samples
-ggplot(data = unifrac.melt, aes(x = reorder(otu_1, value), y = reorder(otu_2, value)))+ 
+heat.uni<-ggplot(data = unifrac.melt, aes(x = reorder(otu_1, value), y = reorder(otu_2, value)))+ 
   geom_tile(aes(fill = value))+
   scale_fill_gradient2(low = 'midnightblue', mid='deepskyblue3', high='yellow', midpoint = .5)+
-  theme(axis.text.x = element_text(angle=90))+
-  labs(x='Sample', y='Sample')
+  theme(axis.text.x = element_text(angle=90),axis.text = element_text(size=9))+
+  labs(x='Sample', y='Sample', title='unweighted')
 
-```
-```{r}
 # make the same plot for weighted unifrac, compare
+unifracwt.melt<-unifrac_wt%>%melt(variable.name='otu_1')%>%
+  mutate(otu_2 = rep.int(colnames(unifrac_wt), times=length(colnames(unifrac_wt))))
 
+heat.wt<-ggplot(data = unifracwt.melt, aes(x = reorder(otu_1, value), y = reorder(otu_2, value)))+ 
+  geom_tile(aes(fill = value))+
+  scale_fill_gradient2(low = 'midnightblue', mid='deepskyblue3', high='yellow', midpoint = .5)+
+  theme(axis.text.x = element_text(angle=90),axis.text = element_text(size=9))+
+  labs(x='Sample', y='Sample', title='weighted')
+
+plot_grid(heat.uni, heat.wt, nrow=1, ncol=2)
+## looks like weighting affects the similarity
+# communities are more similar overall with the weighted unifrac - relative abundance 
+# unweighted, most are 50% or more dissimilar. 
 ```  
 
-Create NMDS  
+Compare samples with PERMANOVA and NMDS    
 ```{r, include=FALSE, eval=FALSE}
 str(map6) #grouping variables 
 colnames(B16S) # community data
 
-otu.taxa<-B16S%>%select(OTU=X.OTU.ID, kingdom:species)
+otu.taxa<-B16S%>%dplyr::select(OTU=X.OTU.ID, kingdom:species)
 write.csv(otu.taxa, 'data/OTU_taxa_id.csv', row.names=FALSE)
 ```
 
@@ -125,7 +129,6 @@ otu.cast<-otu.melt%>%dcast(SampleID~OTU, value.var = 'value_clean')
 otu.mat<-otu.cast[,-1]
 otu.new<-otu.mat[,colSums(otu.mat, na.rm=TRUE)> 0]
 otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%select(SampleID, everything())
-head(otu.new)
 
 write.csv(otu.new, 'data/OTU_community_clean.csv', row.names=FALSE)
 ```
@@ -134,12 +137,21 @@ write.csv(otu.new, 'data/OTU_community_clean.csv', row.names=FALSE)
 ```{r}
 otu.taxa<-read.csv('data/OTU_taxa_id.csv') # otu ids
 otu.comm<-read.csv('data/OTU_community_clean.csv')
+otu.mat<-otu.comm%>%dplyr::select(-SampleID)
 
 otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
-dist<-vegdist(otu.comm%>%select(-SampleID), method='jaccard', na.rm=TRUE)
+
+##dissimiarlity
+uni.dist<-B16S%>%dplyr::select(OJ514)
+dist<-vegdist(otu.mat, method='jaccard', na.rm=TRUE)
 ```  
+Permanova - tests for differences in composition among groups  
 ```{r}
 set.seed(304)
+
+#unifrac distances
+ad.uni<-adonis2()
+
 
 #permanova
 month.adonis<-adonis2(dist~Month*Elevation, data=otu.grp)

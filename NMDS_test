@@ -1,0 +1,8 @@
+comm.nmds<-metaMDS(comm.dis)
+comm.nmds<-metaMDS(comm.rel, distance='bray')
+metaMDS(comm.mat2, distance='bray')
+stressplot(comm.nmds)
+?ordiplot
+ordiplot(comm.nmds, display='sites', type='text')
+str(comm.nmds)
+ordipointlabel(comm.nmds)

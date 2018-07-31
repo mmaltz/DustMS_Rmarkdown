@@ -169,11 +169,11 @@ grps$SampleID
 #### Permanova  
 Permanova tests for differences in composition among groups  
 Reminder - permanova is always based on pairwise distances/dissimilarities.  
-```{r}
+```{r permanova test}
 set.seed(304)
 
 #unifrac distances
-ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000)
+ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000, strata='Year')
 ad.uni
 
 #unifrac distances weighted by relative abundance
@@ -184,7 +184,7 @@ ad.uniwt
 dist.j<-vegdist(otu.comm[,-1], method='jaccard', na.rm=TRUE)
 dist.bc<-vegdist(otu.comm[,-1], method='bray', na.rm=TRUE)
 
-ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000)
+ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000, strata='Year')
 ad.bc
 
 ad.j<-adonis2(dist.j~Month+Year+Elevation, data=grps, permutations=1000)
@@ -192,11 +192,45 @@ ad.j
 
 ```  
 Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year and that is not indicated in the model. 
-```{r}
 
+**Include Year in model appropriately**  Or alternatively, if not interested in Year effect, constrain permutations within Year using 'strata'  
+**Manipulate code for test of interest** 
 
+#### NMDS  
+The NMDS often pairs well with the PERMANOVA because both are more robust to properties of community data. To gain proper fit may need to try multiple dissimilarity methods or tranformations.   
+```{r configure nmds}
+#metaMDS can take communty data or dissimilarities
+mds.uni<-metaMDS(unifrac, k=2)
+mds.uniwt<-metaMDS(unifrac_wt, k=2)
 
+stressplot(mds.uni)
+stressplot(mds.uniwt)
+
+## both have good stress(below .15)
 ```
+Plot ordination  
+```{r}
+# get NMDS scores for each SampleID
+scores(mds.uni) # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
+
+nmds.uni<-data.frame(scores(mds.uni))
+rownames(nmds.uni) # match the rows with the grouping data for plotting
+
+nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%
+  cbind(grps) # then add that df, left_join would have similar effect
+nmds.uni
+
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Elevation, shape=Month))
+```
+**Manipulate plot code to make figure as desired**  
+
+```{r}
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Elevation, shape=Month), size=3)+
+  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
+```
+Separates well by elevation, within each elevation the months are grouped together for the most part. 
 
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   

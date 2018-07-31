@@ -16,3 +16,5 @@ split_taxa<-function(df, col='taxonomy'){
   return(df)
 }
 
+# caluclate standard error (unaffected by na's)
+se <- function(x) sqrt(var(x)/length(x))

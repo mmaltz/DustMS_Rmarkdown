@@ -200,8 +200,8 @@ Month and elevation are significant in all tests. Year is not but that is probab
 The NMDS often pairs well with the PERMANOVA because both are more robust to properties of community data. To gain proper fit may need to try multiple dissimilarity methods or tranformations.   
 ```{r configure nmds}
 #metaMDS can take communty data or dissimilarities
-mds.uni<-metaMDS(unifrac, k=2)
-mds.uniwt<-metaMDS(unifrac_wt, k=2)
+mds.uni<-metaMDS(unifrac, k=2, autotransform=FALSE)
+mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
 
 stressplot(mds.uni)
 stressplot(mds.uniwt)
@@ -209,17 +209,21 @@ stressplot(mds.uniwt)
 ## both have good stress(below .15)
 ```
 Plot ordination  
-```{r}
+```{r nmds plot df}
 # get NMDS scores for each SampleID
 scores(mds.uni) # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
 
 nmds.uni<-data.frame(scores(mds.uni))
 rownames(nmds.uni) # match the rows with the grouping data for plotting
 
-nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%
-  cbind(grps) # then add that df, left_join would have similar effect
-nmds.uni
+nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # then add that df, left_join would have similar effect
+head(nmds.uni)
 
+#weighted unifrac
+nmds.uniwt<-data.frame(scores(mds.uniwt))
+nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps)
+```
+```{r plot nmds}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Month))
 ```
@@ -229,8 +233,12 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Month), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
+
+ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Elevation, shape=Month), size=3)+
+  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 ```
-Separates well by elevation, within each elevation the months are grouped together for the most part. 
+Separates well by elevation, within each elevation the months are grouped together for the most part. When weighted, 
 
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   
@@ -249,7 +257,6 @@ This procedure identifies OTUs as indicator species independently from their abu
   f. To find patterns of co-occurrence among OTUs characteristic of the habitats studied, we analysed correlations among the relative abundances of all indicator OTUs (co-correlations) by calculating Spearman rank correlation values (Spearman, 1904) in R with the function corr.test implemented in the package psych. Multiple testing was accounted for by correcting P-values with a false discovery rates of 5% (q-value<0.05).  
   g. Bacterial and fungal indicator OTUs that were significantly co-correlated were displayed in networks with the edge-weighted spring embedded algorithm layout implemented in Cytoscape where Spearman correlation values were used to weight the edges between the nodes representing the OTUs (Hartmann et al., 2015).”   
 
-it teruherfgbwegrgterfghgfhgf
 
 ###**Q3. Can the observed variation in XXX be explained by provenance? By nutrient composition?**
 ####Outputs: 

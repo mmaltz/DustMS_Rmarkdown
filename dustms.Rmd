@@ -231,14 +231,42 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 
 ```{r}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, shape=Month), size=3)+
+  geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 
 ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, shape=Month), size=3)+
+  geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 ```
-Separates well by elevation, within each elevation the months are grouped together for the most part. When weighted, 
+Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
+
+####NMDS vs PCoA  
+NMDS is an unconstrained ordination method to visualize multivariate data in fewer dimensions. Depending on the properties of your data and your questions, different methods of ordination may be appropriate. PCoA (or MDS) is a metric version of NMDS, meaning that PCoA is a Euclidean representation of dissimilarities. So, like NMDS PCoA uses dissimilarities, but it is euclidean rather than rank-order which is used to preserve distances hierarchically. NMDS and distance-based ordinations/tests are often easier to use with community data because 0's and 1's, rare species are common and do not configure in euclidean space. 
+
+In general, ordination & multivaraite methods are defined by (1) whether or not using dissimilarity, (2) whether or not euclidean, (3) test for differences vs explaining differences  ...  
+
+PCoA, like PCA, returns a set of orthogonal axes with associated eignevalues that measure their importance. PCoA and PCA should produce the same results if the PCA is calculated on a covariance matrix with scaling of 1. 
+
+```{r}
+#PCoA - unconstrained, euclidean
+pcoa.uni<-capscale(unifrac~1,data=grps)
+head(summary(pcoa.uni))
+
+pcoa.df<-data.frame(scores(pcoa.uni, display='sites'))
+pcoa.df# site scores correspond to the SampleID
+
+# bind with grouping data, in order
+pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
+
+
+```  
+**plot the pcoa** 
+
+```{r}
+##dbrda
+#pcoa.uni<-capscale(unifrac~Elevation+Month,data=grps)
+
+```
 
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   

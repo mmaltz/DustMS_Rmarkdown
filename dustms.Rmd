@@ -76,7 +76,7 @@ unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
 
 ```  
 Use heatmap to visualize sample dissimilarity based on UniFrac  
-```{r, fig.width=10, fig.height=4}
+```{r, fig.width=10, fig.height=4, echo=FALSE}
 ## plot otu unifrac dissimilarities as heatmap
 # first melt df so there is a new row for every pairwise combo
 unifrac.melt<-unifrac%>%melt(variable.name='otu_1')%>%
@@ -106,7 +106,6 @@ plot_grid(heat.uni, heat.wt, nrow=1, ncol=2)
 # unweighted, most are 50% or more dissimilar. 
 ```  
 
-Compare samples with PERMANOVA and NMDS    
 ```{r, include=FALSE, eval=FALSE}
 str(map6) #grouping variables 
 colnames(B16S) # community data
@@ -133,29 +132,70 @@ otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%select(SampleID, everyth
 write.csv(otu.new, 'data/OTU_community_clean.csv', row.names=FALSE)
 ```
 
-#### Cleaned data  
+#### Prep data for multivariate anaylsis    
 ```{r}
 otu.taxa<-read.csv('data/OTU_taxa_id.csv') # otu ids
 otu.comm<-read.csv('data/OTU_community_clean.csv')
-otu.mat<-otu.comm%>%dplyr::select(-SampleID)
 
+#otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
+```
+
+```{r}
+## the samples in the unifrq dist and community need to be in the same order
+# need to order community based on unifraq
+colnames(unifrac) # use this order
+# make new df based on unifraq
+otu.ordered<-data.frame(SampleID = colnames(unifrac))%>%left_join(otu.comm, by='SampleID')
+otu.ordered$SampleID
+# this works but is inefficient - there are multiple copies of the otu table which is large
+
+# alternatively - match the order, rewrite over same name
+otu.comm<-otu.comm[match(colnames(unifrac), otu.comm$SampleID),]
+# this says - for the community df, order the rows to match the order of the column names in unifrac, that match to SampleID
+rm(otu.ordered)
+
+```  
+
+```{r}
+#combine with grouping variables - align mapping data with community data
 otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
 
-##dissimiarlity
-uni.dist<-B16S%>%dplyr::select(OJ514)
-dist<-vegdist(otu.mat, method='jaccard', na.rm=TRUE)
+#instead of making our df larger, can reorder mapping data to community like above
+grps<-map6[match(colnames(unifrac), map6$SampleID),]
+grps$SampleID
+
+# now that all the data (community, distances, grouping variables) are ordered the same, we can use permanova etc
 ```  
-Permanova - tests for differences in composition among groups  
+#### Permanova  
+Permanova tests for differences in composition among groups  
+Reminder - permanova is always based on pairwise distances/dissimilarities.  
 ```{r}
 set.seed(304)
 
 #unifrac distances
-ad.uni<-adonis2()
+ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000)
+ad.uni
+
+#unifrac distances weighted by relative abundance
+ad.uniwt<-adonis2(unifrac_wt~Month+Year+Elevation, data=grps, permutations=1000)
+ad.uniwt
+
+## are the results the same with other (non evolutionary) dissimiarlity indices?
+dist.j<-vegdist(otu.comm[,-1], method='jaccard', na.rm=TRUE)
+dist.bc<-vegdist(otu.comm[,-1], method='bray', na.rm=TRUE)
+
+ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000)
+ad.bc
+
+ad.j<-adonis2(dist.j~Month+Year+Elevation, data=grps, permutations=1000)
+ad.j
+
+```  
+Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year and that is not indicated in the model. 
+```{r}
 
 
-#permanova
-month.adonis<-adonis2(dist~Month*Elevation, data=otu.grp)
-month.adonis
+
 ```
 
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    

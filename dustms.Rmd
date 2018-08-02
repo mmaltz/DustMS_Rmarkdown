@@ -173,7 +173,7 @@ Reminder - permanova is always based on pairwise distances/dissimilarities.
 set.seed(304)
 
 #unifrac distances
-ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000, strata='Year')
+ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000)
 ad.uni
 
 #unifrac distances weighted by relative abundance
@@ -184,7 +184,7 @@ ad.uniwt
 dist.j<-vegdist(otu.comm[,-1], method='jaccard', na.rm=TRUE)
 dist.bc<-vegdist(otu.comm[,-1], method='bray', na.rm=TRUE)
 
-ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000, strata='Year')
+ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000)
 ad.bc
 
 ad.j<-adonis2(dist.j~Month+Year+Elevation, data=grps, permutations=1000)

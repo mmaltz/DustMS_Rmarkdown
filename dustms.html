@@ -583,7 +583,112 @@ nmds.uniwt&lt;-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%&gt;%cbind
 <p>NMDS is an unconstrained ordination method to visualize multivariate data in fewer dimensions. Depending on the properties of your data and your questions, different methods of ordination may be appropriate. PCoA (or MDS) is a metric version of NMDS, meaning that PCoA is a Euclidean representation of dissimilarities. So, like NMDS PCoA uses dissimilarities, but it is euclidean rather than rank-order which is used to preserve distances hierarchically. NMDS and distance-based ordinations/tests are often easier to use with community data because 0’s and 1’s, rare species are common and do not configure in euclidean space.</p>
 <p>In general, ordination &amp; multivaraite methods are defined by (1) whether or not using dissimilarity, (2) whether or not euclidean, (3) test for differences vs explaining differences …</p>
 <p>PCoA, like PCA, returns a set of orthogonal axes with associated eignevalues that measure their importance. PCoA and PCA should produce the same results if the PCA is calculated on a covariance matrix with scaling of 1.</p>
+<<<<<<< HEAD
+=======
+<pre class="r"><code>#PCoA - unconstrained, euclidean
+pcoa.uni&lt;-capscale(unifrac~1,data=grps)
+head(summary(pcoa.uni))</code></pre>
+<pre><code>## 
+## Call:
+## capscale(formula = unifrac ~ 1, data = grps) 
+## 
+## Partitioning of squared Unknown distance:
+##               Inertia Proportion
+## Total           8.307          1
+## Unconstrained   8.307          1
+## 
+## Eigenvalues, and their contribution to the squared Unknown distance 
+## 
+## Importance of components:
+##                         MDS1   MDS2    MDS3    MDS4    MDS5    MDS6
+## Eigenvalue            1.3712 0.6172 0.48296 0.44120 0.37507 0.33195
+## Proportion Explained  0.1651 0.0743 0.05814 0.05311 0.04515 0.03996
+## Cumulative Proportion 0.1651 0.2394 0.29750 0.35061 0.39575 0.43571
+##                          MDS7    MDS8    MDS9   MDS10   MDS11   MDS12
+## Eigenvalue            0.33155 0.28128 0.26035 0.24962 0.23306 0.21707
+## Proportion Explained  0.03991 0.03386 0.03134 0.03005 0.02805 0.02613
+## Cumulative Proportion 0.47562 0.50948 0.54082 0.57087 0.59892 0.62505
+##                         MDS13  MDS14   MDS15   MDS16   MDS17   MDS18
+## Eigenvalue            0.21094 0.2044 0.19919 0.19491 0.19216 0.18599
+## Proportion Explained  0.02539 0.0246 0.02398 0.02346 0.02313 0.02239
+## Cumulative Proportion 0.65044 0.6750 0.69902 0.72248 0.74561 0.76800
+##                         MDS19   MDS20   MDS21   MDS22   MDS23   MDS24
+## Eigenvalue            0.18212 0.17951 0.17740 0.17325 0.16256 0.15928
+## Proportion Explained  0.02192 0.02161 0.02135 0.02085 0.01957 0.01917
+## Cumulative Proportion 0.78992 0.81153 0.83289 0.85374 0.87331 0.89248
+##                         MDS25   MDS26   MDS27   MDS28   MDS29   MDS30
+## Eigenvalue            0.15552 0.15339 0.15087 0.14823 0.14353 0.14165
+## Proportion Explained  0.01872 0.01846 0.01816 0.01784 0.01728 0.01705
+## Cumulative Proportion 0.91120 0.92967 0.94783 0.96567 0.98295 1.00000
+## 
+## Scaling 2 for species and site scores
+## * Species are scaled proportional to eigenvalues
+## * Sites are unscaled: weighted dispersion equal on all dimensions
+## * General scaling constant of scores:  3.973259 
+## 
+## 
+## Species scores
+## 
+##      MDS1 MDS2 MDS3 MDS4 MDS5 MDS6
+## Dim1                              
+## Dim2                              
+## Dim3                              
+## Dim4                              
+## Dim5                              
+## Dim6                              
+## ....                              
+## 
+## 
+## Site scores (weighted sums of species scores)
+## 
+##          MDS1    MDS2     MDS3    MDS4     MDS5    MDS6
+## OS115 -0.7415  0.1656  0.04005  0.4076 -1.28724  1.7182
+## AP114  0.6906  0.6814  0.71376  0.5067 -0.02969 -0.6876
+## JJ415  0.9565 -0.3752  0.54479 -0.7769 -0.34641 -0.2737
+## OT115 -0.1568 -1.3120 -0.73738  0.9420 -0.16122 -0.6079
+## JJ515  1.1682 -0.2464  0.84516 -0.7170 -0.55189 -0.2705
+## OS615 -0.8800 -0.3348  0.22812 -0.4617 -1.03511  0.1340
+## ....</code></pre>
+<pre class="r"><code>pcoa.df&lt;-data.frame(scores(pcoa.uni, display='sites'))
+pcoa.df# site scores correspond to the SampleID</code></pre>
+<pre><code>##              MDS1        MDS2
+## OS115 -0.74150784  0.16559647
+## AP114  0.69057917  0.68140546
+## JJ415  0.95654989 -0.37523883
+## OT115 -0.15679547 -1.31203771
+## JJ515  1.16819586 -0.24636897
+## OS615 -0.88000154 -0.33482448
+## OJ615  0.74929599 -0.63299584
+## JT415  0.72507563  0.29416305
+## JP315 -0.67566941  0.31608512
+## OJ514  0.87871285 -0.12487936
+## OJ515  0.57853130 -1.12364192
+## OJ415  0.48488862 -1.09386822
+## AS114  0.02490994  0.91198409
+## JS415 -0.98065675  0.39498848
+## JP414  0.09809453  1.08984841
+## OT515 -0.30571689 -1.45939703
+## JJ114  1.05797322 -0.16478383
+## OT415 -0.37346462 -1.42360670
+## OT414  0.44985751  0.80011034
+## JP515 -0.74251220  0.40269122
+## JT115  0.80663646  0.47811206
+## AJ414 -0.60026037  0.01492331
+## OP315 -0.88894794 -0.30454442
+## OS214  0.03104503  1.08472510
+## JT314  0.71373399  0.72165153
+## OP515 -0.79264025 -0.30799797
+## AT414  0.72371431  0.46458444
+## OS415 -0.70002762  0.25432307
+## OP615 -0.77049900 -0.20989577
+## OP614 -0.73749279  0.34824823
+## JS115 -0.79160161  0.69064067</code></pre>
+<pre class="r"><code># bind with grouping data, in order
+pcoa.df&lt;-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%&gt;%cbind(grps)</code></pre>
+>>>>>>> 3e43f814ceb02136eaf8906b52068aad3698d8c0
 <p><strong>plot the pcoa</strong></p>
+<pre class="r"><code>##dbrda
+#pcoa.uni&lt;-capscale(unifrac~Elevation+Month,data=grps)</code></pre>
 </div>
 </div>
 <div id="richness-by-elevation" class="section level2">

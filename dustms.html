@@ -564,48 +564,40 @@ nmds.uniwt&lt;-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%&gt;%cbind
 <p>In general, ordination &amp; multivaraite methods are defined by (1) whether or not using dissimilarity, (2) whether or not euclidean, (3) test for differences vs explaining differences …</p>
 <p>PCoA, like PCA, returns a set of orthogonal axes with associated eignevalues that measure their importance. PCoA and PCA should produce the same results if the PCA is calculated on a covariance matrix with scaling of 1.</p>
 <pre class="r"><code>#PCoA - unconstrained, euclidean
-pcoa.uni&lt;-capscale(unifrac~Elevation+Month,data=grps)
+pcoa.uni&lt;-capscale(unifrac~1,data=grps)
 head(summary(pcoa.uni))</code></pre>
 <pre><code>## 
 ## Call:
-## capscale(formula = unifrac ~ Elevation + Month, data = grps) 
+## capscale(formula = unifrac ~ 1, data = grps) 
 ## 
 ## Partitioning of squared Unknown distance:
 ##               Inertia Proportion
-## Total           8.307     1.0000
-## Constrained     2.020     0.2432
-## Unconstrained   6.287     0.7568
+## Total           8.307          1
+## Unconstrained   8.307          1
 ## 
 ## Eigenvalues, and their contribution to the squared Unknown distance 
 ## 
 ## Importance of components:
-##                         CAP1    CAP2    CAP3    CAP4    MDS1    MDS2
-## Eigenvalue            0.9615 0.54669 0.31740 0.19451 0.71994 0.46609
-## Proportion Explained  0.1157 0.06581 0.03821 0.02341 0.08666 0.05611
-## Cumulative Proportion 0.1157 0.18155 0.21976 0.24317 0.32983 0.38594
-##                          MDS3    MDS4    MDS5    MDS6    MDS7    MDS8
-## Eigenvalue            0.42073 0.34368 0.31743 0.29856 0.26128 0.25392
-## Proportion Explained  0.05064 0.04137 0.03821 0.03594 0.03145 0.03057
-## Cumulative Proportion 0.43658 0.47795 0.51616 0.55210 0.58355 0.61412
-##                          MDS9   MDS10   MDS11   MDS12   MDS13   MDS14
-## Eigenvalue            0.23866 0.21770 0.20967 0.20169 0.19618 0.19006
-## Proportion Explained  0.02873 0.02621 0.02524 0.02428 0.02362 0.02288
-## Cumulative Proportion 0.64285 0.66905 0.69429 0.71857 0.74219 0.76506
-##                         MDS15   MDS16   MDS17   MDS18   MDS19   MDS20
-## Eigenvalue            0.18715 0.18209 0.17962 0.17351 0.16593 0.16020
-## Proportion Explained  0.02253 0.02192 0.02162 0.02089 0.01997 0.01928
-## Cumulative Proportion 0.78759 0.80951 0.83113 0.85202 0.87199 0.89128
-##                        MDS21   MDS22   MDS23   MDS24  MDS25   MDS26
-## Eigenvalue            0.1570 0.15384 0.15231 0.15107 0.1462 0.14279
-## Proportion Explained  0.0189 0.01852 0.01833 0.01819 0.0176 0.01719
-## Cumulative Proportion 0.9102 0.92869 0.94703 0.96521 0.9828 1.00000
-## 
-## Accumulated constrained eigenvalues
-## Importance of components:
-##                         CAP1   CAP2   CAP3    CAP4
-## Eigenvalue            0.9615 0.5467 0.3174 0.19451
-## Proportion Explained  0.4760 0.2706 0.1571 0.09629
-## Cumulative Proportion 0.4760 0.7466 0.9037 1.00000
+##                         MDS1   MDS2    MDS3    MDS4    MDS5    MDS6
+## Eigenvalue            1.3712 0.6172 0.48296 0.44120 0.37507 0.33195
+## Proportion Explained  0.1651 0.0743 0.05814 0.05311 0.04515 0.03996
+## Cumulative Proportion 0.1651 0.2394 0.29750 0.35061 0.39575 0.43571
+##                          MDS7    MDS8    MDS9   MDS10   MDS11   MDS12
+## Eigenvalue            0.33155 0.28128 0.26035 0.24962 0.23306 0.21707
+## Proportion Explained  0.03991 0.03386 0.03134 0.03005 0.02805 0.02613
+## Cumulative Proportion 0.47562 0.50948 0.54082 0.57087 0.59892 0.62505
+##                         MDS13  MDS14   MDS15   MDS16   MDS17   MDS18
+## Eigenvalue            0.21094 0.2044 0.19919 0.19491 0.19216 0.18599
+## Proportion Explained  0.02539 0.0246 0.02398 0.02346 0.02313 0.02239
+## Cumulative Proportion 0.65044 0.6750 0.69902 0.72248 0.74561 0.76800
+##                         MDS19   MDS20   MDS21   MDS22   MDS23   MDS24
+## Eigenvalue            0.18212 0.17951 0.17740 0.17325 0.16256 0.15928
+## Proportion Explained  0.02192 0.02161 0.02135 0.02085 0.01957 0.01917
+## Cumulative Proportion 0.78992 0.81153 0.83289 0.85374 0.87331 0.89248
+##                         MDS25   MDS26   MDS27   MDS28   MDS29   MDS30
+## Eigenvalue            0.15552 0.15339 0.15087 0.14823 0.14353 0.14165
+## Proportion Explained  0.01872 0.01846 0.01816 0.01784 0.01728 0.01705
+## Cumulative Proportion 0.91120 0.92967 0.94783 0.96567 0.98295 1.00000
 ## 
 ## Scaling 2 for species and site scores
 ## * Species are scaled proportional to eigenvalues
@@ -615,7 +607,7 @@ head(summary(pcoa.uni))</code></pre>
 ## 
 ## Species scores
 ## 
-##      CAP1 CAP2 CAP3 CAP4 MDS1 MDS2
+##      MDS1 MDS2 MDS3 MDS4 MDS5 MDS6
 ## Dim1                              
 ## Dim2                              
 ## Dim3                              
@@ -627,81 +619,53 @@ head(summary(pcoa.uni))</code></pre>
 ## 
 ## Site scores (weighted sums of species scores)
 ## 
-##           CAP1     CAP2     CAP3     CAP4    MDS1      MDS2
-## OS115 -1.05676  0.35623 -0.09136  0.09008 -0.5566  0.003305
-## AP114  0.53804 -0.82785  0.56625  1.65798 -1.0809 -0.976246
-## JJ415  1.18826  0.00443 -0.90947 -0.15084 -0.1411  0.023458
-## OT115 -0.04848  1.22110  0.22929 -0.01191  0.1908  0.732427
-## JJ515  1.35993 -0.12669 -0.98986  0.05411 -0.4933 -0.250166
-## OS615 -1.12792  0.56752 -0.19558  0.04133 -0.1584  0.150326
-## ....                                                       
-## 
-## 
-## Site constraints (linear combinations of constraining variables)
-## 
-##           CAP1    CAP2      CAP3       CAP4    MDS1      MDS2
-## OS115 -1.21678  0.4847  0.005633  0.0159130 -0.5566  0.003305
-## AP114 -0.15106 -0.7533  1.024607  1.3915952 -1.0809 -0.976246
-## JJ415  1.03893 -0.1394 -0.760726 -0.0009891 -0.1411  0.023458
-## OT115  0.01581  0.9682  0.088348 -0.0051935  0.1908  0.732427
-## JJ515  1.03893 -0.1394 -0.760726 -0.0009891 -0.4933 -0.250166
-## OS615 -1.21678  0.4847  0.005633  0.0159130 -0.1584  0.150326
-## ....                                                         
-## 
-## 
-## Biplot scores for constraining variables
-## 
-##                  CAP1    CAP2     CAP3       CAP4 MDS1 MDS2
-## Elevation    -0.94151 -0.3364 -0.01310  0.0151090    0    0
-## MonthJuly     0.24271 -0.4732 -0.84674  0.0133045    0    0
-## MonthOct     -0.36846  0.9268  0.07248  0.0008271    0    0
-## MonthOctober  0.08346 -0.3383  0.53802 -0.7675655    0    0
-## 
-## 
-## Centroids for factor constraints
-## 
-##                 CAP1    CAP2     CAP3       CAP4 MDS1 MDS2
-## MonthAugust   0.1956 -0.6173  1.04787  1.3856590    0    0
-## MonthJuly     0.2335 -0.4554 -0.81477  0.0128022    0    0
-## MonthOct     -0.3309  0.8322  0.06508  0.0007427    0    0
-## MonthOctober  0.1547 -0.6271  0.99750 -1.4230931    0    0</code></pre>
+##          MDS1    MDS2     MDS3    MDS4     MDS5    MDS6
+## OS115 -0.7415  0.1656  0.04005 -0.4076 -1.28724  1.7182
+## AP114  0.6906  0.6814  0.71376 -0.5067 -0.02969 -0.6876
+## JJ415  0.9565 -0.3752  0.54479  0.7769 -0.34641 -0.2737
+## OT115 -0.1568 -1.3120 -0.73738 -0.9420 -0.16122 -0.6079
+## JJ515  1.1682 -0.2464  0.84516  0.7170 -0.55189 -0.2705
+## OS615 -0.8800 -0.3348  0.22812  0.4617 -1.03511  0.1340
+## ....</code></pre>
 <pre class="r"><code>pcoa.df&lt;-data.frame(scores(pcoa.uni, display='sites'))
 pcoa.df# site scores correspond to the SampleID</code></pre>
-<pre><code>##              CAP1         CAP2
-## OS115 -1.05675513  0.356226940
-## AP114  0.53803510 -0.827850716
-## JJ415  1.18826063  0.004429742
-## OT115 -0.04848385  1.221096779
-## JJ515  1.35993171 -0.126688776
-## OS615 -1.12792191  0.567515883
-## OJ615  0.89088355  0.735203192
-## JT415  0.77001890 -0.413750837
-## JP315 -0.66477632 -0.330698130
-## OJ514  1.07703148 -0.135545218
-## OJ515  0.79504270  1.092330254
-## OJ415  0.68851844  1.118391255
-## AS114 -0.21602128 -1.017204101
-## JS415 -1.10330462 -0.641932510
-## JP414 -0.04601483 -0.960691373
-## OT515 -0.18327245  1.346216507
-## JJ114  1.26897957 -0.132681631
-## OT415 -0.21384029  1.257558912
-## OT414  0.41591568 -0.722133322
-## JP515 -0.74653502 -0.434940389
-## JT115  0.83068584 -0.567965549
-## AJ414 -0.25056942 -0.093487521
-## OP315 -0.91651548  0.620839875
-## OS214 -0.21104532 -1.112037718
-## JT314  0.70070856 -0.634355432
-## OP515 -0.85314853  0.687668129
-## AT414  0.71096749 -0.530786900
-## OS415 -1.06850477  0.309327093
-## OP615 -0.87632698  0.674401545
-## OP614 -0.66297178 -0.538823692
-## JS115 -0.98897167 -0.769632294</code></pre>
+<pre><code>##              MDS1        MDS2
+## OS115 -0.74150784  0.16559647
+## AP114  0.69057917  0.68140546
+## JJ415  0.95654989 -0.37523883
+## OT115 -0.15679547 -1.31203771
+## JJ515  1.16819586 -0.24636897
+## OS615 -0.88000154 -0.33482448
+## OJ615  0.74929599 -0.63299584
+## JT415  0.72507563  0.29416305
+## JP315 -0.67566941  0.31608512
+## OJ514  0.87871285 -0.12487936
+## OJ515  0.57853130 -1.12364192
+## OJ415  0.48488862 -1.09386822
+## AS114  0.02490994  0.91198409
+## JS415 -0.98065675  0.39498848
+## JP414  0.09809453  1.08984841
+## OT515 -0.30571689 -1.45939703
+## JJ114  1.05797322 -0.16478383
+## OT415 -0.37346462 -1.42360670
+## OT414  0.44985751  0.80011034
+## JP515 -0.74251220  0.40269122
+## JT115  0.80663646  0.47811206
+## AJ414 -0.60026037  0.01492331
+## OP315 -0.88894794 -0.30454442
+## OS214  0.03104503  1.08472510
+## JT314  0.71373399  0.72165153
+## OP515 -0.79264025 -0.30799797
+## AT414  0.72371431  0.46458444
+## OS415 -0.70002762  0.25432307
+## OP615 -0.77049900 -0.20989577
+## OP614 -0.73749279  0.34824823
+## JS115 -0.79160161  0.69064067</code></pre>
 <pre class="r"><code># bind with grouping data, in order
 pcoa.df&lt;-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%&gt;%cbind(grps)</code></pre>
 <p><strong>plot the pcoa</strong></p>
+<pre class="r"><code>##dbrda
+#pcoa.uni&lt;-capscale(unifrac~Elevation+Month,data=grps)</code></pre>
 </div>
 </div>
 <div id="q2.-if-differences-exist-are-there-particular-taxa-that-contribute-disproportionately-to-those-differences" class="section level3">

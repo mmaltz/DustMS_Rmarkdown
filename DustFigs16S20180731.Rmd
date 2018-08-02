@@ -1,9 +1,9 @@
 ---
-title: "dust"
-author: "C. Nell"
-date: "7/23/2018"
+title: "DustFigs20180731"
+author: "MiaMaltz"
+date: "7/31/2018"
 output: 
-  html_document:
+    html_document:
     toc: TRUE
     toc_float: TRUE
     toc_depth: 4
@@ -68,7 +68,7 @@ B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 ```  
   
 #### Read in UniFrac distances    
-UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be invfluencd by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
+UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be influenced by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
 Use to compare phylogenetic lineages between groups, to cluster samples. 
 ```{r}
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
@@ -105,7 +105,10 @@ plot_grid(heat.uni, heat.wt, nrow=1, ncol=2)
 # communities are more similar overall with the weighted unifrac - relative abundance 
 # unweighted, most are 50% or more dissimilar. 
 ```  
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#data wrangling
 ```{r, include=FALSE, eval=FALSE}
 str(map6) #grouping variables 
 colnames(B16S) # community data
@@ -147,28 +150,31 @@ colnames(unifrac) # use this order
 # make new df based on unifrac, matched to same order as unifrac
 otu.ordered<-data.frame(SampleID = colnames(unifrac))%>%left_join(otu.comm, by='SampleID')
 otu.ordered$SampleID
-# this works but is inefficient - there are multiple copies of the otu table which is large
+# this works but is inefficient - there are multiple copies of the otu table which is large, remember to remove this file after data wrangling to free up workspace on Rstudio (rm command works to remove files)
 
 # alternatively - match the order, rewrite over same name
 otu.comm<-otu.comm[match(colnames(unifrac), otu.comm$SampleID),]
-# this says - for the community df, order the rows to match the order of the column names in unifrac, that match to SampleID
+# this says - for the community df, order the rows to match the order of the column names in the file with the unifrac dissimilarity matrix i.e., unifrac, that match to SampleID
 rm(otu.ordered)
 
 ```  
-
-```{r}
+###Combine with grouping variables
+```{r Combine with grouping variables}
 #combine with grouping variables - align mapping data with community data
 otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
 
-#instead of making our df larger, can reorder mapping data to community like above
+#instead of making the df larger, we can reorder the mapping data to match with the community, like above
 grps<-map6[match(colnames(unifrac), map6$SampleID),]
 grps$SampleID
 
 # now that all the data (community, distances, grouping variables) are ordered the same, we can use permanova etc
+
 ```  
 #### Permanova  
 Permanova tests for differences in composition among groups  
 Reminder - permanova is always based on pairwise distances/dissimilarities.  
+  Can either nest Month in Year with Year/Month
+  Or, can restrict permutations within year, using strata='Year'
 ```{r permanova test}
 set.seed(304)
 
@@ -196,14 +202,15 @@ ad.j<-adonis2(dist.j~Month+Year+Elevation, data=grps, permutations=1000)
 ad.j
 
 ```  
-Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year and that is not indicated in the model. 
 
-**Include Year in model appropriately**  Or alternatively, if not interested in Year effect, constrain permutations within Year using 'strata'  
-**Manipulate code for test of interest** 
+Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year.
 
+**Include Year in model appropriately**  
+    Or alternatively, if wanting to constrain for the variation by Year, constrain permutations within Year using   'strata'  
 #### NMDS  
 The NMDS often pairs well with the PERMANOVA because both are more robust to properties of community data. To gain proper fit may need to try multiple dissimilarity methods or tranformations.   
-```{r configure nmds}
+
+```{r configure nmds, include=FALSE, eval=FALSE}
 #metaMDS can take communty data or dissimilarities
 mds.uni<-metaMDS(unifrac, k=2, autotransform=FALSE)
 mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
@@ -213,8 +220,9 @@ stressplot(mds.uniwt)
 
 ## both have good stress(below .15)
 ```
+
 Plot ordination  
-```{r nmds plot df}
+```{r nmds plot df, include=FALSE, eval=FALSE}
 # get NMDS scores for each SampleID
 scores(mds.uni) # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
 
@@ -228,11 +236,18 @@ head(nmds.uni)
 nmds.uniwt<-data.frame(scores(mds.uniwt))
 nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps)
 ```
+
 ```{r plot nmds}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Month))
 ```
-**Manipulate plot code to make figure as desired**  
+Plotting TimePointIntegration
+```{r plot nmds}
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Elevation, shape=DateCode))
+```
+
+**Plotting elevation, month, and site**  
 
 ```{r}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
@@ -243,6 +258,7 @@ ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Site), size=4)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 ```
+
 Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
 
 ####NMDS vs PCoA  
@@ -265,24 +281,6 @@ pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
 
 
 ```  
-**plot the pcoa** 
-
-```{r include=FALSE, eval=FALSE}
-##dbrda
-#pcoa.uni<-capscale(unifrac~Elevation+Month,data=grps)
-
-#not working
-#ggplot(pcoa.uni, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=3)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
-
-
-#ggplot(pcoa.df, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=4)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
-
-```
-
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   
   

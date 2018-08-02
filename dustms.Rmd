@@ -171,8 +171,9 @@ Permanova tests for differences in composition among groups
 Reminder - permanova is always based on pairwise distances/dissimilarities.  
 ```{r permanova test}
 set.seed(304)
-
 #unifrac distances
+
+##ERRORS won't knit (Was this there before: <<<<<<< HEAD?)
 <<<<<<< HEAD
 ad.uni<-adonis2(unifrac~Month+Elevation, data=grps, permutations=1000, strata='Year')
 =======
@@ -239,12 +240,14 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 **Manipulate plot code to make figure as desired**  
 
 
-```{r plot nmds with Year}
+```{r plot nmds with Year test 1}
+#Not working to assign Year as a grouping factor
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(size=Year, shape=Month))
 ```
 
-```{r plot nmds with Year}
+```{r plot nmds with Year test 2}
+#Not working to assign Year as a grouping factor
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(size=Month, color=Year))
   
@@ -253,6 +256,7 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 
 
 ```{r}
+#Not running
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
@@ -263,7 +267,9 @@ ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
 ```
 Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
 
+
 ```{r}
+#Not running
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Month), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
@@ -275,7 +281,7 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Year, shape=Month), size=4)+
   scale_color_gradient2(low='turquoise', high='red', midpoint=1500)
-  
+  #Not running
 ```
 
 
@@ -320,6 +326,7 @@ pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
 
 ```
 ##Richness by Elevation
+#Not working
 
 ```
 

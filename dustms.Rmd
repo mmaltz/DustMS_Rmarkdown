@@ -24,6 +24,7 @@ library(stringr)
 library(ggplot2) # plotting
 library(magrittr)
 library(cowplot)
+library(formatR)
 
 ```
 ### Logic   
@@ -111,85 +112,74 @@ str(map6) #grouping variables
 colnames(B16S) # community data
 
 otu.taxa<-B16S%>%dplyr::select(OTU=X.OTU.ID, kingdom:species)
-write.csv(otu.taxa, 'data/OTU_taxa_id.csv', row.names=FALSE)
+write.csv(otu.taxa, 'data/OTU_taxa_id.csv', row.names=FALSE) # save full # reorder columns data
 ```
 
-```{r, eval=FALSE, include=FALSE}
-otu.melt<-B16S%>%select(-taxonomy:-species)%>%select(OTU = X.OTU.ID, everything())%>%
+```{r single and doubletons, eval=FALSE, include=FALSE}
+otu.melt<-B16S%>%dplyr::select(-taxonomy:-species)%>%
+  dplyr::select(OTU = X.OTU.ID, everything())%>%
   melt(id.vars=c('OTU'), variable.name='SampleID')
 
 # remove singletons and doubletons
 otu.melt$value_clean<-ifelse(otu.melt$value <= 2, NA, otu.melt$value)
 
-# community df
+# community df using cleaned data
 otu.cast<-otu.melt%>%dcast(SampleID~OTU, value.var = 'value_clean')
 
-## remove otus that were dropped with singletons and doubletons
+## remove otus that were dropped with singletons and doubletons 
 otu.mat<-otu.cast[,-1]
 otu.new<-otu.mat[,colSums(otu.mat, na.rm=TRUE)> 0]
-otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%select(SampleID, everything())
+otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%dplyr::select(SampleID, everything())
 
 write.csv(otu.new, 'data/OTU_community_clean.csv', row.names=FALSE)
 ```
 
 #### Prep data for multivariate anaylsis    
-```{r}
+```{r read in cleaned data}
 otu.taxa<-read.csv('data/OTU_taxa_id.csv') # otu ids
 otu.comm<-read.csv('data/OTU_community_clean.csv')
 
-#otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
 ```
 
-```{r}
+```{r reorder data}
 ## the samples in the unifrac dist and community need to be in the same order
 # need to order community based on unifraq
-colnames(unifrac) # use this order
-# make new df based on unifrac, matched to same order as unifrac
-otu.ordered<-data.frame(SampleID = colnames(unifrac))%>%left_join(otu.comm, by='SampleID')
-otu.ordered$SampleID
-# this works but is inefficient - there are multiple copies of the otu table which is large
 
-# alternatively - match the order, rewrite over same name
+# make new df based on unifrac, matched to same order as unifrac
+# match the order to colnames(unifrac), rewrite over same name
 otu.comm<-otu.comm[match(colnames(unifrac), otu.comm$SampleID),]
 # this says - for the community df, order the rows to match the order of the column names in unifrac, that match to SampleID
-rm(otu.ordered)
 
-```  
-
-```{r}
-#combine with grouping variables - align mapping data with community data
-otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
-
-#instead of making our df larger, can reorder mapping data to community like above
+# reorder mapping data to community data 
 grps<-map6[match(colnames(unifrac), map6$SampleID),]
-grps$SampleID
-
 # now that all the data (community, distances, grouping variables) are ordered the same, we can use permanova etc
 ```  
+
 #### Permanova  
 Permanova tests for differences in composition among groups  
 Reminder - permanova is always based on pairwise distances/dissimilarities.  
-```{r permanova test}
+```{r unifrac permanova}
 set.seed(304)
 #unifrac distances
+str(grps) #look at data types to indetify error source
+# Elevation is integer - change to factor 
+grps$Elevation<-as.factor(grps$Elevation)
+str(grps$Elevation)
 
-##ERRORS won't knit (Was this there before: <<<<<<< HEAD?)
-<<<<<<< HEAD
 ad.uni<-adonis2(unifrac~Month+Elevation, data=grps, permutations=1000, strata='Year')
-=======
+
 ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000)
->>>>>>> 3e43f814ceb02136eaf8906b52068aad3698d8c0
 ad.uni
 
 #unifrac distances with month nested in year
 ad.uniNest<-adonis2(unifrac~Year/Month+Elevation, data=grps, permutations=1000)
 ad.uniNest
 
-
 #unifrac distances weighted by relative abundance
 ad.uniwt<-adonis2(unifrac_wt~Month+Year+Elevation, data=grps, permutations=1000)
 ad.uniwt
-
+``` 
+```{r other dist permanova, eval=FALSE, include=FALSE}
 ## are the results the same with other (non evolutionary) dissimiarlity indices?
 dist.j<-vegdist(otu.comm[,-1], method='jaccard', na.rm=TRUE)
 dist.bc<-vegdist(otu.comm[,-1], method='bray', na.rm=TRUE)
@@ -203,7 +193,6 @@ ad.j
 ```  
 Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year and that is not indicated in the model. 
 
-**Include Year in model appropriately**  Or alternatively, if not interested in Year effect, constrain permutations within Year using 'strata'  
 **Manipulate code for test of interest** 
 
 #### NMDS  
@@ -213,25 +202,21 @@ The NMDS often pairs well with the PERMANOVA because both are more robust to pro
 mds.uni<-metaMDS(unifrac, k=2, autotransform=FALSE)
 mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
 
-stressplot(mds.uni)
-stressplot(mds.uniwt)
+#stressplot(mds.uni)
+#stressplot(mds.uniwt)
 
 ## both have good stress(below .15)
 ```
 Plot ordination  
 ```{r nmds plot df}
 # get NMDS scores for each SampleID
-scores(mds.uni) # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
-
+# scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
 nmds.uni<-data.frame(scores(mds.uni))
-rownames(nmds.uni) # match the rows with the grouping data for plotting
+nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # match the rows and bind with the grouping data for plotting
 
-nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # then add that df, left_join would have similar effect
-head(nmds.uni)
-
-#weighted unifrac
+# plotting data for nmds for weighted unifrac
 nmds.uniwt<-data.frame(scores(mds.uniwt))
-nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps)
+nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps) # reorder rows and bind to grouping data
 ```
 ```{r plot nmds}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
@@ -244,6 +229,13 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 #Not working to assign Year as a grouping factor
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(size=Year, shape=Month))
+
+# converting variables between numeric and factors changes how ggplot will plot them if hitting errors
+str(nmds.uni$Year)
+nmds.uni<-nmds.uni%>%transform(Year = as.factor(Year))
+
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(size=Year, shape=Month))
 ```
 
 ```{r plot nmds with Year test 2}
@@ -252,7 +244,7 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(size=Month, color=Year))
   
 ```
-```
+
 
 
 ```{r}
@@ -261,9 +253,20 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 
-ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, shape=Site), size=4)+
+# to use scale_color_gradient2, the assigned variable must be continuous (as.numeric) 
+# a shape scale is most useful for categorical data  
+# data type can be: numeric, factor, integer, and character. character and factor are very similar but are treated slightly differently
+
+str(nmds.uni$Elevation)
+# to convert to numeric back from factor you have to be careful
+# going directly factor to numeric does not work. to preserve the values in a factor, convert to character, then numeric
+nmds.uni$Elevation<-as.character(nmds.uni$Elevation)
+nmds.uni$Elevation<-as.numeric(nmds.uni$Elevation)
+
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
+
 ```
 Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
 

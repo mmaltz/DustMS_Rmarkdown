@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
+knitr::opts_chunk$set(cache=TRUE, tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4, fig.width=6, fig.height=4.5)
 ```
 
 ```{r Load preliminary packages, include=FALSE}
@@ -202,7 +202,7 @@ Month and elevation are significant in all tests. Year is not but that is probab
 
 #### NMDS  
 The NMDS often pairs well with the PERMANOVA because both are more robust to properties of community data. To gain proper fit may need to try multiple dissimilarity methods or tranformations.   
-```{r configure nmds}
+```{r configure nmds, echo=FALSE}
 #metaMDS can take communty data or dissimilarities
 mds.uni<-metaMDS(unifrac, k=2, autotransform=FALSE)
 mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
@@ -351,6 +351,8 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 
 
 ```
+  
+
 ####NMDS vs PCoA  
 NMDS is an unconstrained ordination method to visualize multivariate data in fewer dimensions. Depending on the properties of your data and your questions, different methods of ordination may be appropriate. PCoA (or MDS) is a metric version of NMDS, meaning that PCoA is a Euclidean representation of dissimilarities. So, like NMDS PCoA uses dissimilarities, but it is euclidean rather than rank-order which is used to preserve distances hierarchically. NMDS and distance-based ordinations/tests are often easier to use with community data because 0's and 1's, rare species are common and do not configure in euclidean space. 
 
@@ -388,13 +390,7 @@ pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
 #  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 
 ```
-##Richness by Elevation
-#Not working
 
-
-```{r}
-
-```
 
 
 

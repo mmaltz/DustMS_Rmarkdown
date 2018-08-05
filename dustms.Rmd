@@ -391,7 +391,6 @@ pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
 ##Richness by Elevation
 #Not working
 
-```
 
 ```{r}
 

@@ -74,8 +74,8 @@ B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 ```  
   
 #### Read in UniFrac distances    
-UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be invfluencd by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
-Use to compare phylogenetic lineages between groups, to cluster samples. 
+UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be invfluencd by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).Use to compare phylogenetic lineages between groups, to cluster samples. 
+
 ```{r}
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
 unifrac_wt<-read.table('data/weighted_unifrac_dm.txt')
@@ -154,6 +154,7 @@ otu.comm<-read.csv('data/OTU_community_clean.csv')
 # match the order to colnames(unifrac), rewrite over same name
 otu.comm<-otu.comm[match(colnames(unifrac), otu.comm$SampleID),]
 # this says - for the community df, order the rows to match the order of the column names in unifrac, that match to SampleID
+otu.comm[is.na(otu.comm)]<-0 #replace NAs with 0
 
 # reorder mapping data to community data 
 grps<-map6[match(colnames(unifrac), map6$SampleID),]
@@ -212,8 +213,8 @@ mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
 
 ## both have good stress(below .15)
 ```
-Plot ordination  
-```{r nmds plot df}
+
+```{r nmds plot df, eval=FALSE, include=FALSE}
 # get NMDS scores for each SampleID
 # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
 nmds.uni<-data.frame(scores(mds.uni))
@@ -222,27 +223,18 @@ nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # mat
 # plotting data for nmds for weighted unifrac
 nmds.uniwt<-data.frame(scores(mds.uniwt))
 nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps) # reorder rows and bind to grouping data
+
+# save dataframes - reproducible with same 'set.seed()' 
+write.csv(nmds.uni, 'data/nmds.unifrac.csv', row.names=FALSE)
+write.csv(nmds.uniwt, 'data/nmds.unifracwt.csv', row.names=FALSE)
 ```
-```{r plot nmds}
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, shape=Month))
-```
-**Manipulate plot code to make figure as desired**  
-
-```{r plot nmds with Year test 1}
-#Not working to assign Year as a grouping factor
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(size=Year, shape=Month))
-
-# converting variables between numeric and factors changes how ggplot will plot them if hitting errors
-str(nmds.uni$Year)
-nmds.uni<-nmds.uni%>%transform(Year = as.factor(Year))
-
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(size=Year, shape=Month))
-```
-
+Plot ordination 
 ```{r plot nmds with Year test 2}
+nmds.uni<-read.csv('data/nmds.unifrac.csv')%>% # correct data types for plotting
+  transform(Elevation = as.numeric(as.integer(Elevation)), Month = as.factor(Month), Year = as.factor(Year))
+nmds.uniwt<-read.csv('data/nmds.unifracwt.csv')%>% # correct data types for plotting
+  transform(Elevation = as.numeric(as.integer(Elevation)), Month = as.factor(Month), Year = as.factor(Year))
+
 #Not working to assign Year as a grouping factor
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(size=Month, color=Year))
@@ -263,11 +255,13 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 # a shape scale is most useful for categorical data  
 # data type can be: numeric, factor, integer, and character. character and factor are very similar but are treated slightly differently
 
-str(nmds.uni$Elevation)
+str(nmds.uni)
 # to convert to numeric back from factor you have to be careful
 # going directly factor to numeric does not work. to preserve the values in a factor, convert to character, then numeric
-nmds.uni$Elevation<-as.character(nmds.uni$Elevation)
-nmds.uni$Elevation<-as.numeric(nmds.uni$Elevation)
+
+# can be done like this below OR on ethe dataframe when read in initially so it applies to everything (better option, see above)
+# nmds.uni$Elevation<-as.character(nmds.uni$Elevation)
+# nmds.uni$Elevation<-as.numeric(nmds.uni$Elevation)
 
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Site), size=3)+
@@ -282,6 +276,13 @@ ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Year, shape=Month), size=4)+
   scale_color_gradient2(low='turquoise', high='red', midpoint=1500)
   #Not running - you need to change Year to categorical using as.factor() 
+  # but also year cannot be given a continuous scale_color_gradient
+  #instead try scale_color_manual to be able to provide the colors for each year
+
+# manually assign discrete color scale
+ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
+  geom_point(aes(color=Year, shape=Month), size=4)+
+  scale_color_manual(values=c('darkslateblue','gold'))
 ```
 ```{r}
 ## edit shape scale - the + is hard to see
@@ -290,7 +291,7 @@ ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
 # Show a list of available shapes
 df_shapes <- data.frame(shape = 0:25)
 ggplot(df_shapes, aes(0, 0, shape = shape)) +
-  geom_point(aes(shape = shape), size = 5, fill = 'red') +
+  geom_point(aes(shape = shape), size = 3, fill = 'red') +
   scale_shape_identity() +
   facet_wrap(~shape) +
   theme_void()
@@ -310,48 +311,73 @@ ggplot(nmds.uni, aes(NMDS1, NMDS2))+
 
 # fill = Year
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
+  geom_point(aes(fill=Year), size=3)+
   theme_bw()
 # note - this is the same as before even with fill = Year added because we are using a shape that cannot be filled
 
+# we hve to assign a different shape
 # fill = Year, shape = 21
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), shape = 21,color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
+  geom_point(aes(fill=Year), shape = 21,color='black', size=3)+
   theme_bw()
 # shape = 21 is the filled circle
 
 # shape = Month
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year, shape=Month),color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
+  geom_point(aes(fill=Year, shape=Month),color='black', size=3)+
   scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
   theme_bw()
 
 # and to change the color of the fill:
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), shape = 21,color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
+  geom_point(aes(fill=Year, shape = Month), color='black', size=3)+
   scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
   scale_fill_manual(values=c('black','white'))+
+  guides(fill = guide_legend(override.aes=list(shape=21)))+ 
   theme_bw()
-```
+```  
+
 ```{r}
 # lets add the stress to the plot
 mds.uni$stress #the stress
 
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year, shape=Month),color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
+  geom_point(aes(fill=Year, shape = Month), color='black', size=3)+
   scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
   scale_fill_manual(values=c('black','white'))+
+  guides(fill = guide_legend(override.aes=list(shape=21)))+ 
   theme_bw()+
   annotate('text', x=0.3, -0.25, label=paste0('Stress = ',round(mds.uni$stress,2)))
 
+```  
+```{r}
+# add ellipses - 95% CI multivariate normal
+ggplot(nmds.uni, aes(NMDS1, NMDS2))+
+  geom_point(aes(fill=Year, shape = Month), color='black', size=3)+
+  scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
+  scale_fill_manual(values=c('black','white'))+
+  guides(fill = guide_legend(override.aes=list(shape=21)))+ 
+  theme_bw()+
+  annotate('text', x=0.4, -0.28, label=paste0('Stress = ',round(mds.uni$stress,2)))+
+  stat_ellipse(aes(group=Year, lty=Year), type='norm')
 
 ```
+```{r}
+# look at elevation and time
+nmds.plot<-nmds.uni%>%transform(Elevation = as.ordered(Elevation))
+
+ggplot(nmds.plot, aes(NMDS1, NMDS2))+
+  geom_point(aes(fill=Year, shape = Elevation), color='black', size=3)+
+  scale_fill_manual(values=c('black','white'))+
+  guides(fill = guide_legend(override.aes=list(shape=21)))+ 
+  annotate('text', x=0.3, -0.25, label=paste0('Stress = ',round(mds.uni$stress,2)))+
+  scale_shape_manual(values=c(21, 22, 23, 24))+
+  theme_bw()#+
+   # the values correspond to the shapes above
+ 
   
+
+```
 
 ####NMDS vs PCoA  
 NMDS is an unconstrained ordination method to visualize multivariate data in fewer dimensions. Depending on the properties of your data and your questions, different methods of ordination may be appropriate. PCoA (or MDS) is a metric version of NMDS, meaning that PCoA is a Euclidean representation of dissimilarities. So, like NMDS PCoA uses dissimilarities, but it is euclidean rather than rank-order which is used to preserve distances hierarchically. NMDS and distance-based ordinations/tests are often easier to use with community data because 0's and 1's, rare species are common and do not configure in euclidean space. 
@@ -360,38 +386,73 @@ In general, ordination & multivaraite methods are defined by (1) whether or not 
 
 PCoA, like PCA, returns a set of orthogonal axes with associated eignevalues that measure their importance. PCoA and PCA should produce the same results if the PCA is calculated on a covariance matrix with scaling of 1. 
 
-```{r include=FALSE, eval=FALSE}
+** Run PCoA and examine the results**  
+```{r run PCoa, include=TRUE, eval=TRUE}
 #PCoA - unconstrained, euclidean
-pcoa.uni<-capscale(unifrac~1,data=grps)
+pcoa.uni<-capscale(unifrac~1,data=grps, comm=otu.comm[,-1])
 head(summary(pcoa.uni))
-
-pcoa.df<-data.frame(scores(pcoa.uni, display='sites'))
-pcoa.df# site scores correspond to the SampleID
-
+# this returns a lot of stuff
+# the importance of components tells you the total variation explained by your axes 
+# this is your indication of goodness of fit rather than stress in the nmds
+# the species scores are how each species (otu) fits in the ordination space
+```
+```{r plot pcoa}
+# the site scores at the bottom are the weighted sums of species scores
+# this means these are the SampleID points in ordination space, use that to plot as before
+pcoa.df<-data.frame(scores(pcoa.uni, display='sites'))# site scores correspond to the SampleID
 # bind with grouping data, in order
-pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
+pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)%>% # match rows and bind
+  transform(Elevation = as.ordered(Elevation), Year = as.factor(Year))
 
+ggplot(pcoa.df, aes(MDS1, MDS2))+
+  geom_point(aes(fill=Year, shape = Elevation), color='black', size=3)+
+  scale_fill_manual(values=c('black','white'))+
+  guides(fill = guide_legend(override.aes=list(shape=21)))+ 
+  scale_shape_manual(values=c(21, 22, 23, 24))+
+  theme_bw()#
+
+## can also add your otus - BUT there were thousands so that will never plot
+#first identify which ones are important and related to the ordination
+
+# can do this with envfit
+env.df<-grps%>%dplyr::select(Year, Month, Elevation, Site)%>%transform(Elevation = as.numeric(Elevation), Year=as.factor(Year))
+env.fact<-envfit(pcoa.uni, env.df, permutations =1000, na.rm=TRUE)# returns significance and R2 for correlations with environemntal vars
+# should be similar to nmds results unless the ordination has poor fit
+env.fact
+# can also test with individual species or taxonomic groups butthere are way too many otus for this to produce a very clear result in this case
 
 ```  
-**plot the pcoa** 
+```{r}
+scores(pcoa.uni, display='species') # pull species socres
+```  
+
+#### Constrained ordination  
+The prior ordinations were unconstrained, meaning they reflect the true variation of the data as defined by the species compoisiton. In that case you can look at correlations between coposition and environmental variables or species. But these are more exploratory methods, and to determine which variables or species best explain the differences between groups, constrained ordination may be appropriate.  
+
+A distance-based reducndancy analysis is the constrained version of the PCoA. The dbrda tests which variables ebst explain the observed variation. Thus, the ordination will be slightly different. It is designed to work with distance data, like the unifrac.
 
 ```{r include=FALSE, eval=FALSE}
+# constrained ordination - explaint he diffrerences
 ##dbrda
-#pcoa.uni<-capscale(unifrac~Elevation+Month,data=grps)
+dbrda.uni<-capscale(unifrac~Elevation+Month,data=grps)
+head(summary(dbrda.uni))
 
-#not working
-#ggplot(pcoa.uni, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=3)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
+# now the CAP axes shown are constrained
+# see provides biplot scores for contraining variables
+```
+```{r}
 
 
-#ggplot(pcoa.df, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=4)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 
 ```
+#### Identify relevant species/otus in ordination  
+
+When you have an unconstrained ordination and you see variation between your groups, you may be interested in which species contribute to these differences and/or how species composition turnsover in multivariate space.  
+
+One way to look at this is to examine how well your species (or otus, or any taxonomy etc) are correlated with an ordination and plot vectors.
 
 
+#### Relating  community composition to the environment 
 
 
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    

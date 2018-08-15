@@ -6,6 +6,7 @@
 # 
 
 split_taxa<-function(df, col='taxonomy'){
+  require('stringr')
   df$kingdom<-str_match(df[,col], "k__(.*?);")[,2]
   df$phylum<-str_match(df[,col], "p__(.*?);")[,2]
   df$class<-str_match(df[,col], "c__(.*?);")[,2]

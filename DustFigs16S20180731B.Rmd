@@ -1,16 +1,16 @@
 ---
-title: "dust"
-author: "C. Nell"
-date: "7/23/2018"
+title: "DustFigs20180731"
+author: "MiaMaltz"
+date: "7/31/2018"
 output: 
-  html_document:
+    html_document:
     toc: TRUE
     toc_float: TRUE
     toc_depth: 4
 ---
 
 ```{r, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE, tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4, fig.width=6, fig.height=4.5)
+knitr::opts_chunk$set(cache=TRUE, tidy=TRUE,error = TRUE, eval = TRUE, message = FALSE, warning = FALSE, rows.print=5, cols.min.print=4)
 ```
 
 ```{r Load preliminary packages, include=FALSE}
@@ -24,7 +24,6 @@ library(stringr)
 library(ggplot2) # plotting
 library(magrittr)
 library(cowplot)
-library(formatR)
 
 ```
 ### Logic   
@@ -39,12 +38,7 @@ library(formatR)
 *Limitation: our time comparisons may be skewed because we did not sterilize collectors in between sampling events. Time points may appear more similar to each other than in reality. It’s also important to run on presence-absence data only; we don’t want to capture community differences that are driven by post-depositional divergence in relative abundances.*  
 
 ```{r read in mapping data, include=FALSE}
-map6<-read.csv("data/SierraMap6.csv", header = TRUE, 
-               col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))%>%
-  transform(Month=as.character(Month))%>% #transform to edit spellings
-  mutate(Month = ifelse(Month == 'Oct','October', Month)) # consolidate multiple spellings of October
-
-unique(map6$Month)
+map6<-read.csv("data/SierraMap6.csv", header = TRUE, col.names =   c("SampleID","BarcodeSequence","LinkerPrimerSequence","Year","Month","SiteCode","RepNum","SiteRep","Site","Elevation","DateCode","DescName","Description"))
 
 ```  
 
@@ -74,7 +68,7 @@ B16S$species<-str_match(B16S$taxonomy, "s__(.*?)")[,2]
 ```  
   
 #### Read in UniFrac distances    
-UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be invfluencd by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
+UniFrac is a measure of B-diversity that uses phylogenetic information to compare community samples. Use with multivariate methods like principal coordinates (PCoA), NMDS, etc to explain differences among communities. Measured as the amount of evolutionary history that is unique to each group - the fraction of branch length in a phylogenetic tree associated with  ONLY the focal sample in pairwise comparison. With sequence data UniFrac values can be influenced by the number of sequences/sample and can use sequence jackknifing (Lozupone et al 2011. ISME).    
 Use to compare phylogenetic lineages between groups, to cluster samples. 
 ```{r}
 unifrac<-read.table('data/unweighted_unifrac_dm.txt')
@@ -111,249 +105,161 @@ plot_grid(heat.uni, heat.wt, nrow=1, ncol=2)
 # communities are more similar overall with the weighted unifrac - relative abundance 
 # unweighted, most are 50% or more dissimilar. 
 ```  
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#data wrangling
 ```{r, include=FALSE, eval=FALSE}
 str(map6) #grouping variables 
 colnames(B16S) # community data
 
 otu.taxa<-B16S%>%dplyr::select(OTU=X.OTU.ID, kingdom:species)
-write.csv(otu.taxa, 'data/OTU_taxa_id.csv', row.names=FALSE) # save full # reorder columns data
+write.csv(otu.taxa, 'data/OTU_taxa_id.csv', row.names=FALSE)
 ```
 
-```{r single and doubletons, eval=FALSE, include=FALSE}
-otu.melt<-B16S%>%dplyr::select(-taxonomy:-species)%>%
-  dplyr::select(OTU = X.OTU.ID, everything())%>%
+```{r, eval=FALSE, include=FALSE}
+otu.melt<-B16S%>%select(-taxonomy:-species)%>%select(OTU = X.OTU.ID, everything())%>%
   melt(id.vars=c('OTU'), variable.name='SampleID')
 
 # remove singletons and doubletons
 otu.melt$value_clean<-ifelse(otu.melt$value <= 2, NA, otu.melt$value)
 
-# community df using cleaned data
+# community df
 otu.cast<-otu.melt%>%dcast(SampleID~OTU, value.var = 'value_clean')
 
-## remove otus that were dropped with singletons and doubletons 
+## remove otus that were dropped with singletons and doubletons
 otu.mat<-otu.cast[,-1]
 otu.new<-otu.mat[,colSums(otu.mat, na.rm=TRUE)> 0]
-otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%dplyr::select(SampleID, everything())
+otu.new<-otu.new%>%mutate(SampleID=otu.cast$SampleID)%>%select(SampleID, everything())
 
 write.csv(otu.new, 'data/OTU_community_clean.csv', row.names=FALSE)
 ```
 
 #### Prep data for multivariate anaylsis    
-#otu.taxa has the sample name (sample IDs as rows) and then the taxonomy column split out by taxonomic level
-#otu.comm has OTUID as columns, and the sample IDs as rows
-```{r read in cleaned data}
+```{r}
 otu.taxa<-read.csv('data/OTU_taxa_id.csv') # otu ids
 otu.comm<-read.csv('data/OTU_community_clean.csv')
 
+#otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
 ```
 
-```{r reorder data}
+```{r}
 ## the samples in the unifrac dist and community need to be in the same order
 # need to order community based on unifraq
-
+colnames(unifrac) # use this order
 # make new df based on unifrac, matched to same order as unifrac
-# match the order to colnames(unifrac), rewrite over same name
+otu.ordered<-data.frame(SampleID = colnames(unifrac))%>%left_join(otu.comm, by='SampleID')
+otu.ordered$SampleID
+# this works but is inefficient - there are multiple copies of the otu table which is large, remember to remove this file after data wrangling to free up workspace on Rstudio (rm command works to remove files)
+
+# alternatively - match the order, rewrite over same name
 otu.comm<-otu.comm[match(colnames(unifrac), otu.comm$SampleID),]
-# this says - for the community df, order the rows to match the order of the column names in unifrac, that match to SampleID
+# this says - for the community df, order the rows to match the order of the column names in the file with the unifrac dissimilarity matrix i.e., unifrac, that match to SampleID
+rm(otu.ordered)
 
-# reorder mapping data to community data 
-grps<-map6[match(colnames(unifrac), map6$SampleID),]
-# now that all the data (community, distances, grouping variables) are ordered the same, we can use permanova etc
 ```  
+###Combine with grouping variables
+```{r Combine with grouping variables}
+#combine with grouping variables - align mapping data with community data
+otu.grp<-otu.comm%>%left_join(map6, by='SampleID')
 
+#instead of making the df larger, we can reorder the mapping data to match with the community, like above
+grps<-map6[match(colnames(unifrac), map6$SampleID),]
+grps$SampleID
+
+# now that all the data (community, distances, grouping variables) are ordered the same, we can use permanova etc
+
+```  
 #### Permanova  
 Permanova tests for differences in composition among groups  
 Reminder - permanova is always based on pairwise distances/dissimilarities.  
-```{r unifrac permanova}
+  Can either nest Month in Year with Year/Month
+  Or, can restrict permutations within year, using strata='Year'
+```{r permanova test}
 set.seed(304)
+
 #unifrac distances
-str(grps) #look at data types to indetify error source
-# Elevation is integer - change to factor 
-grps$Elevation<-as.factor(grps$Elevation)
-grps$Month<-as.factor(grps$Month)
-
 ad.uni<-adonis2(unifrac~Month+Elevation, data=grps, permutations=1000, strata='Year')
-
-ad.uni<-adonis2(unifrac~Month+Year+Elevation, data=grps, permutations=1000)
 ad.uni
 
 #unifrac distances with month nested in year
 ad.uniNest<-adonis2(unifrac~Year/Month+Elevation, data=grps, permutations=1000)
 ad.uniNest
 
+
 #unifrac distances weighted by relative abundance
 ad.uniwt<-adonis2(unifrac_wt~Month+Year+Elevation, data=grps, permutations=1000)
 ad.uniwt
-``` 
-```{r other dist permanova, eval=FALSE, include=FALSE}
+
 ## are the results the same with other (non evolutionary) dissimiarlity indices?
 dist.j<-vegdist(otu.comm[,-1], method='jaccard', na.rm=TRUE)
 dist.bc<-vegdist(otu.comm[,-1], method='bray', na.rm=TRUE)
 
-ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000)
+ad.bc<-adonis2(dist.bc~Month+Year+Elevation, data=grps, permutations=1000, strata='Year')
 ad.bc
 
 ad.j<-adonis2(dist.j~Month+Year+Elevation, data=grps, permutations=1000)
 ad.j
 
 ```  
-Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year and that is not indicated in the model. 
 
-**Manipulate code for test of interest** 
+Month and elevation are significant in all tests. Year is not but that is probably because month is nested within year.
 
+**Include Year in model appropriately**  
+    Or alternatively, if wanting to constrain for the variation by Year, constrain permutations within Year using   'strata'  
 #### NMDS  
 The NMDS often pairs well with the PERMANOVA because both are more robust to properties of community data. To gain proper fit may need to try multiple dissimilarity methods or tranformations.   
-```{r configure nmds, echo=FALSE}
+
+```{r configure nmds, include=FALSE, eval=FALSE}
 #metaMDS can take communty data or dissimilarities
 mds.uni<-metaMDS(unifrac, k=2, autotransform=FALSE)
 mds.uniwt<-metaMDS(unifrac_wt, k=2, autotransform=FALSE)
 
-#stressplot(mds.uni)
-#stressplot(mds.uniwt)
+stressplot(mds.uni)
+stressplot(mds.uniwt)
 
 ## both have good stress(below .15)
 ```
-Plot ordination  
-```{r nmds plot df}
-# get NMDS scores for each SampleID
-# scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
-nmds.uni<-data.frame(scores(mds.uni))
-nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # match the rows and bind with the grouping data for plotting
 
-# plotting data for nmds for weighted unifrac
+Plot ordination  
+```{r nmds plot df, include=FALSE, eval=FALSE}
+# get NMDS scores for each SampleID
+scores(mds.uni) # scores are returned for each sampleid as a row, collapses dissimilarity data into 2 dimensions
+
+nmds.uni<-data.frame(scores(mds.uni))
+rownames(nmds.uni) # match the rows with the grouping data for plotting
+
+nmds.uni<-nmds.uni[match(grps$SampleID,rownames(nmds.uni)),]%>%cbind(grps) # then add that df, left_join would have similar effect
+head(nmds.uni)
+
+#weighted unifrac
 nmds.uniwt<-data.frame(scores(mds.uniwt))
-nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps) # reorder rows and bind to grouping data
+nmds.uniwt<-nmds.uniwt[match(grps$SampleID,rownames(nmds.uniwt)),]%>%cbind(grps)
 ```
+
 ```{r plot nmds}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Month))
 ```
-**Manipulate plot code to make figure as desired**  
-
-```{r plot nmds with Year test 1}
-#Not working to assign Year as a grouping factor
+Plotting TimePointIntegration
+```{r plot nmds}
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(size=Year, shape=Month))
-
-# converting variables between numeric and factors changes how ggplot will plot them if hitting errors
-str(nmds.uni$Year)
-nmds.uni<-nmds.uni%>%transform(Year = as.factor(Year))
-
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(size=Year, shape=Month))
+  geom_point(aes(color=Elevation, shape=DateCode))
 ```
 
-```{r plot nmds with Year test 2}
-#Not working to assign Year as a grouping factor
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(size=Month, color=Year))
-
-# size for discrete scale is a little funky
-# also there are 2 different levels for the month of october due to spelling differences - correction added upstream to the grouping dataframe
-```
-
-
+**Plotting elevation, month, and site**  
 
 ```{r}
-#Not running
 ggplot(nmds.uni, aes(NMDS1, NMDS2))+
   geom_point(aes(color=Elevation, shape=Site), size=3)+
   scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 
-# to use scale_color_gradient2, the assigned variable must be continuous (as.numeric) 
-# a shape scale is most useful for categorical data  
-# data type can be: numeric, factor, integer, and character. character and factor are very similar but are treated slightly differently
-
-str(nmds.uni$Elevation)
-# to convert to numeric back from factor you have to be careful
-# going directly factor to numeric does not work. to preserve the values in a factor, convert to character, then numeric
-nmds.uni$Elevation<-as.character(nmds.uni$Elevation)
-nmds.uni$Elevation<-as.numeric(nmds.uni$Elevation)
-
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, shape=Site), size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
-
-```
-Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
-
-
-```{r}
 ggplot(nmds.uniwt, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Year, shape=Month), size=4)+
-  scale_color_gradient2(low='turquoise', high='red', midpoint=1500)
-  #Not running - you need to change Year to categorical using as.factor() 
+  geom_point(aes(color=Elevation, shape=Site), size=4)+
+  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
 ```
-```{r}
-## edit shape scale - the + is hard to see
-# https://ggplot2.tidyverse.org/reference/scale_shape.html
 
-# Show a list of available shapes
-df_shapes <- data.frame(shape = 0:25)
-ggplot(df_shapes, aes(0, 0, shape = shape)) +
-  geom_point(aes(shape = shape), size = 5, fill = 'red') +
-  scale_shape_identity() +
-  facet_wrap(~shape) +
-  theme_void()
-
-# shapes in red let you manipulate the color & fill (rather than just color)
-# color then corresponds to the shape outline, and fill to the inside
-# let's use the fill to indicate the Year, shape for the Month, and color for Elevation
-```
-```{r editing plots}
-# let's use the fill to indicate the Year, shape for the Month
-
-# color = Elevation
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation), size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  theme_bw()
-
-# fill = Year
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  theme_bw()
-# note - this is the same as before even with fill = Year added because we are using a shape that cannot be filled
-
-# fill = Year, shape = 21
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), shape = 21,color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  theme_bw()
-# shape = 21 is the filled circle
-
-# shape = Month
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year, shape=Month),color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
-  theme_bw()
-
-# and to change the color of the fill:
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year), shape = 21,color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
-  scale_fill_manual(values=c('black','white'))+
-  theme_bw()
-```
-```{r}
-# lets add the stress to the plot
-mds.uni$stress #the stress
-
-ggplot(nmds.uni, aes(NMDS1, NMDS2))+
-  geom_point(aes(color=Elevation, fill=Year, shape=Month),color='black', size=3)+
-  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)+
-  scale_shape_manual(values=c(21, 22, 24))+ # the values correspond to the shapes above
-  scale_fill_manual(values=c('black','white'))+
-  theme_bw()+
-  annotate('text', x=0.3, -0.25, label=paste0('Stress = ',round(mds.uni$stress,2)))
-
-
-```
-  
+Separates well by elevation/site, within each elevation the months are grouped together for the most part.  
 
 ####NMDS vs PCoA  
 NMDS is an unconstrained ordination method to visualize multivariate data in fewer dimensions. Depending on the properties of your data and your questions, different methods of ordination may be appropriate. PCoA (or MDS) is a metric version of NMDS, meaning that PCoA is a Euclidean representation of dissimilarities. So, like NMDS PCoA uses dissimilarities, but it is euclidean rather than rank-order which is used to preserve distances hierarchically. NMDS and distance-based ordinations/tests are often easier to use with community data because 0's and 1's, rare species are common and do not configure in euclidean space. 
@@ -362,7 +268,7 @@ In general, ordination & multivaraite methods are defined by (1) whether or not 
 
 PCoA, like PCA, returns a set of orthogonal axes with associated eignevalues that measure their importance. PCoA and PCA should produce the same results if the PCA is calculated on a covariance matrix with scaling of 1. 
 
-```{r include=FALSE, eval=FALSE}
+```{r}
 #PCoA - unconstrained, euclidean
 pcoa.uni<-capscale(unifrac~1,data=grps)
 head(summary(pcoa.uni))
@@ -375,27 +281,6 @@ pcoa.df<-pcoa.df[match(grps$SampleID,rownames(pcoa.df)),]%>%cbind(grps)
 
 
 ```  
-**plot the pcoa** 
-
-```{r include=FALSE, eval=FALSE}
-##dbrda
-#pcoa.uni<-capscale(unifrac~Elevation+Month,data=grps)
-
-#not working
-#ggplot(pcoa.uni, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=3)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
-
-
-#ggplot(pcoa.df, aes(NMDS1, NMDS2))+
-#  geom_point(aes(color=Elevation, shape=Site), size=4)+
-#  scale_color_gradient2(low='turquoise', mid='yellow', high='red', midpoint=1500)
-
-```
-
-
-
-
 ###**Q2. If differences exist, are there particular taxa that contribute disproportionately to those differences?**    
 *Note: Can’t run any analyses that rely on relative abundance data (e.g., simper), Address using absence-presence data*   
   
